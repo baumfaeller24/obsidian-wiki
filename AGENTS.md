@@ -75,6 +75,7 @@ Skills live in `.skills/<name>/SKILL.md`. Match the user's intent to the right s
 | "/memory-bridge" / "browse codex memory" / "what did codex know about X" / "compare tool memories" / "cross-tool memory" | `memory-bridge` |
 | "/daily-update" / "morning sync" / "refresh the wiki index" / "set up the daily cron" / "install terminal notification" | `daily-update` |
 | "/impl-validator" / "check this implementation" / "validate what you did" / "is this correct?" | `impl-validator` |
+| "/wiki-switch NAME" / "switch to my work wiki" / "switch vault" / "change wiki" / "list my wikis" / "show my vaults" / "create a new vault config" | `wiki-switch` |
 
 ## Cross-Project Usage
 
