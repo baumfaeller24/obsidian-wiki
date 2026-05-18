@@ -126,7 +126,7 @@ fi
 # If vault path is empty or placeholder, ask the user
 if [ -z "$VAULT_PATH" ] || [ "$VAULT_PATH" = "/path/to/your/vault" ]; then
   echo ""
-  read -p "  Where is your Obsidian vault? (absolute path): " VAULT_PATH
+  read -p "  Where is your Obsidian vault? (absolute path): " VAULT_PATH || true
   if [ -n "$VAULT_PATH" ]; then
     # Escape the path for sed: replace '/' with '\/' and '"' with '\"'
     ESCAPED_PATH=$(printf '%s\n' "$VAULT_PATH" | sed -e 's/[\/&]/\\&/g' -e 's/"/\\"/g')
