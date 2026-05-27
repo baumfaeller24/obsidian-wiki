@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "obsidian-wiki"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A skill-based framework for building and maintaining an AI-maintained Obsidian knowledge base (Karpathy's LLM Wiki pattern) across any AI coding agent."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -40,6 +40,11 @@ Issues = "https://github.com/Ar9av/obsidian-wiki/issues"
 
 [project.scripts]
 obsidian-wiki = "obsidian_wiki.cli:main"
+
+# Version is derived from the git tag (CalVer, e.g. v2026.05.2 -> 2026.5.2),
+# matching the repo's release tags. Tagging a release is the version bump.
+[tool.hatch.version]
+source = "vcs"
 
 # ── Build configuration ──────────────────────────────────────────────────────
 # The Python package is just the thin CLI in obsidian_wiki/. The actual product
