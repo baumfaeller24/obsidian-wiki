@@ -272,8 +272,43 @@ def write_config(vault_path: str) -> None:
     GLOBAL_CONFIG.write_text(
         f'OBSIDIAN_VAULT_PATH="{vault_path}"\n'
         f'OBSIDIAN_WIKI_REPO="{repo_root}"\n'
+        f'OBSIDIAN_WIKI_VERSION="{__version__}"\n'
     )
     print(f"✅  Global config written to {GLOBAL_CONFIG}")
+
+
+def _check_stale() -> None:
+    """Warn if the installed version doesn't match when setup last ran, or if skills are missing."""
+    if not GLOBAL_CONFIG.is_file():
+        print(
+            f"⚠️  obsidian-wiki {__version__} is installed but setup has never been run.\n"
+            f"   Run: obsidian-wiki setup --vault /path/to/your/vault",
+            file=sys.stderr,
+        )
+        return
+
+    setup_version = _read_config_value("OBSIDIAN_WIKI_VERSION")
+    if setup_version and setup_version != __version__:
+        print(
+            f"⚠️  obsidian-wiki upgraded {setup_version} → {__version__} but setup hasn't been re-run.\n"
+            f"   New skills won't be available until you run: obsidian-wiki setup",
+            file=sys.stderr,
+        )
+        return
+
+    # Even if the version matches, check that ~/.claude/skills has the full set.
+    claude_skills_dir = HOME / ".claude" / "skills"
+    if claude_skills_dir.is_dir():
+        bundled = set(list_skills())
+        installed = {p.name for p in claude_skills_dir.iterdir() if p.is_dir()}
+        missing = bundled - installed
+        if missing:
+            print(
+                f"⚠️  {len(missing)} skill(s) missing from ~/.claude/skills/ "
+                f"(e.g. {', '.join(sorted(missing)[:3])}{', ...' if len(missing) > 3 else ''}).\n"
+                f"   Run: obsidian-wiki setup",
+                file=sys.stderr,
+            )
 
 
 # ── Commands ─────────────────────────────────────────────────────────────────
@@ -320,6 +355,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 
 def cmd_info(args: argparse.Namespace) -> int:
+    bundled = list_skills()
     print(f"obsidian-wiki {__version__}")
     print(f"skills:    {skills_dir()}")
     boot = bootstrap_dir()
@@ -327,8 +363,27 @@ def cmd_info(args: argparse.Namespace) -> int:
     print(f"config:    {GLOBAL_CONFIG}{'' if GLOBAL_CONFIG.exists() else ' (not written yet)'}")
     if GLOBAL_CONFIG.exists():
         vp = _read_config_value("OBSIDIAN_VAULT_PATH")
+        setup_ver = _read_config_value("OBSIDIAN_WIKI_VERSION")
         print(f"vault:     {vp or '(unset)'}")
-    print(f"skill count: {len(list_skills())}")
+        print(f"setup ran: {setup_ver or '(never)'}")
+    print(f"bundled skills: {len(bundled)}")
+    print()
+    print("Agent skill install status:")
+    bundled_set = set(bundled)
+    for rel, label, _subset in GLOBAL_AGENT_DIRS:
+        agent_dir = HOME / rel
+        if not agent_dir.is_dir():
+            print(f"  {label}: not installed")
+            continue
+        installed = {p.name for p in agent_dir.iterdir() if p.is_dir()}
+        wiki_installed = installed & bundled_set
+        missing = bundled_set - installed
+        status = "✅" if not missing else "⚠️ "
+        print(f"  {status} {label}: {len(wiki_installed)}/{len(bundled_set)}", end="")
+        if missing:
+            print(f"  (run: obsidian-wiki setup)", end="")
+        print()
+    _check_stale()
     return 0
 
 
@@ -387,6 +442,10 @@ def main(argv: list[str] | None = None) -> int:
     if not getattr(args, "func", None):
         parser.print_help()
         return 0
+    # Warn about stale installs on every command except `setup` (which fixes it)
+    # and `info` (which calls _check_stale itself with richer output).
+    if getattr(args, "command", None) not in ("setup", "info", None):
+        _check_stale()
     try:
         return args.func(args)
     except (FileNotFoundError, RuntimeError) as exc:
