@@ -31,11 +31,22 @@ print(d.get('transcript_path', ''))
 
 [[ -z "$TRANSCRIPT_PATH" || ! -f "$TRANSCRIPT_PATH" ]] && exit 0
 
+# Checkpoint: after /wiki-quick-chat-capture runs it touches this file.
+# Only count tool uses in transcript entries timestamped after the checkpoint
+# so re-runs don't re-report already-captured work.
+CHECKPOINT="$HOME/.obsidian-wiki/capture-checkpoint"
+CHECKPOINT_TS=""
+if [[ -f "$CHECKPOINT" ]]; then
+  CHECKPOINT_TS=$(python3 -c "import os, datetime; print(datetime.datetime.fromtimestamp(os.path.getmtime('$CHECKPOINT')).isoformat())" 2>/dev/null || echo "")
+fi
+
 # Count meaningful tool uses: Write/Edit = file mutations, Bash = shell work
-COUNTS=$(python3 - "$TRANSCRIPT_PATH" <<'PYEOF'
+# Only entries with timestamp > CHECKPOINT_TS (or all entries if no checkpoint).
+COUNTS=$(python3 - "$TRANSCRIPT_PATH" "$CHECKPOINT_TS" <<'PYEOF'
 import json, sys
 
 path = sys.argv[1]
+cutoff = sys.argv[2] if len(sys.argv) > 2 else ""
 write_edit = 0
 bash_count = 0
 
@@ -48,6 +59,10 @@ with open(path) as f:
             entry = json.loads(line)
         except json.JSONDecodeError:
             continue
+        if cutoff:
+            ts = entry.get("timestamp", "")
+            if ts and ts <= cutoff:
+                continue
         msg = entry.get("message") or {}
         if msg.get("role") != "assistant":
             continue

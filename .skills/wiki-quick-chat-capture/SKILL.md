@@ -126,6 +126,13 @@ Run /wiki-ingest (or /data-ingest) to promote these to full wiki pages.
 
 If nothing was captured: "Nothing worth capturing found in this session."
 
+After confirming (whether files were staged or skipped), update the Stop hook checkpoint so
+it doesn't re-trigger for already-captured work in this session:
+
+```bash
+mkdir -p ~/.obsidian-wiki && touch ~/.obsidian-wiki/capture-checkpoint
+```
+
 ## What This Skill Does NOT Do
 
 - No manifest writes — `_raw/` files are not tracked in `.manifest.json`
