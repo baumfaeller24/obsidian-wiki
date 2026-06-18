@@ -294,6 +294,31 @@ The fastest way to feed `_raw/` during a live coding session is `/wiki-capture -
 
 The directory is created automatically by `wiki-setup`. The path is configurable via `OBSIDIAN_RAW_DIR` in `.env` (defaults to `_raw`).
 
+### Browser Capture Extension
+
+This repo includes a zero-build Chrome extension at `extensions/brain-capture/` for saving web pages and selected text into your vault's `_raw/` folder.
+
+To install it:
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select `extensions/brain-capture`
+
+To find the configured `_raw` folder from this repo:
+
+```bash
+awk -F= '/^OBSIDIAN_VAULT_PATH=/{print $2 "/_raw"; exit}' "$(git rev-parse --show-toplevel)/.env"
+```
+
+After capturing pages into `_raw/`, ask your agent to process them:
+
+```text
+/wiki-ingest promote my raw pages
+```
+
+`wiki-ingest` will read each `_raw/` capture, distill it into the right wiki pages, update the manifest/index/log, and remove the promoted raw files so they are not processed twice.
+
 ---
 
 ## Syncing your vault to GitHub
