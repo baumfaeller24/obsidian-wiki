@@ -37,13 +37,15 @@ obsidian-wiki setup --copy      # copy skill files instead of symlinking
 
 `OBSIDIAN_VAULT_PATH` is just any directory where you want your digital brain to live, a new empty folder or an existing Obsidian vault. Omit `--vault` to be prompted (or set it later in `~/.obsidian-wiki/config`).
 
-### Install via Skills CLI
+### Install via Skills CLI (deprecated)
 
 ```bash
 npx skills add Ar9av/obsidian-wiki
 ```
 
-This installs all wiki skills into your current agent (Claude Code, Cursor, Codex, etc.). Then open your agent and say **"set up my wiki"**.
+This only installs the markdown skills into the current agent. It does **not** write `~/.obsidian-wiki/config`, install `~/.obsidian-wiki/sync.sh`, or wire the global multi-agent bootstrap that `obsidian-wiki setup` / `setup.sh` performs.
+
+Use this path only if you intentionally want a partial, agent-local install and are prepared to manage config yourself. For a complete setup, use **Install via pip** or **Install via git clone** instead.
 
 Browse the full skill list at [skills.sh/ar9av/obsidian-wiki](https://skills.sh/ar9av/obsidian-wiki).
 
