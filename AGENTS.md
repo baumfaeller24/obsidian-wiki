@@ -11,7 +11,81 @@ Read config in this order (first found wins):
 
 Both files set `OBSIDIAN_VAULT_PATH` (where the wiki lives). The global config also sets `OBSIDIAN_WIKI_REPO` (where this repo is cloned).
 
-## Vault Structure
+## Codex Memory Vault Boundary
+
+`obsidian-wiki` is a tooling layer. It can query, lint, cross-link, export, and
+help maintain markdown pages. It is not the canonical memory authority.
+
+If `OBSIDIAN_VAULT_PATH` points to Alex's Codex memory vault, use the existing
+Codex vault schema instead of creating the generic `obsidian-wiki` schema.
+This boundary overrides generic skill instructions that would otherwise create
+standalone `obsidian-wiki` folders in the Codex memory vault.
+
+Canonical Codex memory may live only in:
+
+```text
+wiki/
+entities/
+decisions/
+projects/
+runbooks/
+```
+
+Non-canonical working areas are:
+
+```text
+staging/
+reviews/
+raw/
+inbox/
+.memvault/
+```
+
+Translate generic `obsidian-wiki` terms into the Codex vault schema:
+
+| Generic term | Codex memory-vault target |
+|---|---|
+| `concepts/` | `wiki/` |
+| `skills/` | `runbooks/` or project-specific how-tos |
+| `references/` | reviewed source summaries, not raw dumps |
+| `synthesis/` | reviewed cross-domain analysis in an approved canonical directory |
+| `journal/` | not used by default; chat truth stays in raw logs and Graphiti |
+
+Do not create root directories such as `concepts/`, `skills/`,
+`references/`, `synthesis/`, or `journal/` inside the Codex memory vault unless
+Alex explicitly approves a schema migration.
+
+Canonical writes require Alex approval. Semantic, policy, system-boundary,
+agent-boundary, retention, or security changes require LI review before commit.
+
+## Automated Write Guard
+
+Routine wiki maintenance should run without Alex being present, but no
+write-capable skill may write directly to a vault without first applying the
+`wiki-write-guard` checker.
+
+Required flow:
+
+1. Writer prepares a proposed operation.
+2. `wiki-write-guard` classifies it as approve, queue, reject, or escalate.
+3. Writer proceeds only on approve.
+
+Generated reports, staging candidates, and eligible small mechanical
+maintenance may be approved unattended. Unclear routine work should become a
+review-queue item instead of interrupting Alex. Canonical promotion, semantic
+policy/architecture changes, cross-agent truth merging, deletion, broad moves,
+root-schema changes, rebuilds, and restores must escalate.
+
+Unclear or misplaced files go to this tooling repo's local quarantine folder
+`/home/alex/obsidian-wiki/.local-quarantine/` first. Do not delete or commit
+them until their correct project/vault is known. ArchaeoTerrain/Planlauf content
+belongs to its own project/vault, not to the Codex memory vault or this tooling
+repo.
+
+## Generic Vault Structure
+
+Use this structure only for a normal standalone `obsidian-wiki` vault. Do not
+copy it into the Codex memory vault.
 
 ```
 $OBSIDIAN_VAULT_PATH/
@@ -41,6 +115,7 @@ Skills live in `.skills/<name>/SKILL.md`. Match the user's intent to the right s
 | User says something like… | Skill |
 |---|---|
 | "set up my wiki" / "initialize" | `wiki-setup` |
+| "check this wiki write" / "guard wiki write" / any write-capable skill before writing | `wiki-write-guard` |
 | "/wiki-history-ingest claude" / "/wiki-history-ingest codex" / "/wiki-history-ingest hermes" | `wiki-history-ingest` |
 | "ingest" / "add this to the wiki" / "process these docs" | `wiki-ingest` |
 | "import my Claude history" / "mine my conversations" | `claude-history-ingest` |

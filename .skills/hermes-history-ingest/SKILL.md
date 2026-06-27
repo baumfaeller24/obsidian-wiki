@@ -14,6 +14,19 @@ You are extracting knowledge from the user's Hermes agent history and distilling
 
 This skill can be invoked directly or via the `wiki-history-ingest` router (`/wiki-history-ingest hermes`).
 
+## Write Guard
+
+Before any page write, manifest update, index update, or log update, apply
+`wiki-write-guard` to the proposed operation. Hermes is an external observed
+agent system for the Codex memory project. Default unattended output may only be
+reports or external-input staging candidates. Do not write Hermes content into
+Codex canonical truth unless the guard escalates and Alex explicitly approves a
+bounded bridge.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH` and `HERMES_HISTORY_PATH` (default to `~/.hermes` if unset)

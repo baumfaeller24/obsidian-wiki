@@ -11,6 +11,19 @@ description: >
 
 You are performing a health check on an Obsidian wiki. Your goal is to find and fix structural issues that degrade the wiki's value over time.
 
+## Write Guard
+
+The audit/report path is read-only. Before fixing links, adding frontmatter,
+editing pages, editing taxonomy, or appending to `log.md`, apply
+`wiki-write-guard` to the proposed operation. Continue only on
+`Decision: approve`. If the guard returns `queue`, write only the approved
+review-queue item. If it returns `reject` or `escalate`, do not write target
+files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 **Before scanning anything:** follow the Retrieval Primitives table in `llm-wiki/SKILL.md`. Prefer frontmatter-scoped greps and section-anchored reads over full-page reads. On a large vault, blindly reading every page to lint it is exactly what this framework is built to avoid.
 
 ## Before You Start

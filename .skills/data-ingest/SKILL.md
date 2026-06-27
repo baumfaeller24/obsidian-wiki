@@ -13,6 +13,18 @@ description: >
 
 You are ingesting arbitrary text data into an Obsidian wiki. The source could be anything — conversation exports, log files, transcripts, data dumps. Your job is to figure out the format, extract knowledge, and distill it into wiki pages.
 
+## Write Guard
+
+Before any file write, manifest update, index update, or log update, apply
+`wiki-write-guard` to the proposed operation. Continue only on
+`Decision: approve`. If the guard returns `queue`, write only the approved
+review-queue item. If it returns `reject` or `escalate`, do not write target
+files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH`

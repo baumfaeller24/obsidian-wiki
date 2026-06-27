@@ -14,6 +14,18 @@ You are extracting knowledge from the user's past Claude Code conversations and 
 
 This skill can be invoked directly or via the `wiki-history-ingest` router (`/wiki-history-ingest claude`).
 
+## Write Guard
+
+Before any page write, manifest update, index update, or log update, apply
+`wiki-write-guard` to the proposed operation. Default unattended output should
+be inventory/delta or staging candidates. Continue only on `Decision: approve`.
+If the guard returns `queue`, write only the approved review-queue item. If it
+returns `reject` or `escalate`, do not write target files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH` and `CLAUDE_HISTORY_PATH` (defaults to `~/.claude`)

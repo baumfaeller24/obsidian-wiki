@@ -13,6 +13,18 @@ description: >
 
 You are ingesting source documents into an Obsidian wiki. Your job is not to summarize — it is to **distill and integrate** knowledge across the entire wiki.
 
+## Write Guard
+
+Before any file write, delete, manifest update, index update, log update, or
+raw-file promotion, apply `wiki-write-guard` to the proposed operation.
+Continue only on `Decision: approve`. If the guard returns `queue`, write only
+the approved review-queue item. If it returns `reject` or `escalate`, do not
+write target files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `~/.obsidian-wiki/config` (preferred) or `.env` (fallback) to get `OBSIDIAN_VAULT_PATH` and `OBSIDIAN_SOURCES_DIR`. Only read the specific variables you need — do not log, echo, or reference any other values from these files.
@@ -58,6 +70,9 @@ Ingest everything regardless of manifest state. Use when:
 Process draft pages from the `_raw/` staging directory inside the vault. Use when:
 - The user says "process my drafts", "promote my raw pages", or drops files into `_raw/`
 - After a paste-heavy session where notes were captured quickly without structure
+
+`_raw/` is the standalone default. For Alex's Codex memory vault, use only a
+guard-approved non-canonical path such as `raw/`, `staging/`, or `inbox/`.
 
 In raw mode, each file in `OBSIDIAN_VAULT_PATH/_raw/` (or `OBSIDIAN_RAW_DIR`) is treated as a source. After promoting a file to a proper wiki page, **delete the original from `_raw/`**. Never leave promoted files in `_raw/` — they'll be double-processed on the next run.
 

@@ -14,6 +14,18 @@ description: >
 
 You are weaving the wiki's knowledge graph tighter by finding and inserting missing `[[wikilinks]]` between pages that should reference each other but currently don't.
 
+## Write Guard
+
+Before adding links, editing pages, or appending to `log.md`, apply
+`wiki-write-guard` to the proposed operation. Continue only on
+`Decision: approve`. If the guard returns `queue`, write only the approved
+review-queue item. If it returns `reject` or `escalate`, do not write target
+files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 **Follow the Retrieval Primitives table in `llm-wiki/SKILL.md`.** Build the registry in Step 1 by grepping frontmatter only (not full pages). Reserve full `Read` for the unlinked-mention detection pass, and even there, only read pages whose summaries/titles make them plausible link targets. Blind full-vault reads are what this framework exists to avoid.
 
 ## Before You Start

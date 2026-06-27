@@ -13,6 +13,18 @@ description: >
 
 You are enforcing consistent tagging across the wiki by normalizing tags to a controlled vocabulary.
 
+## Write Guard
+
+Before changing page tags, editing `_meta/taxonomy.md`, or appending to
+`log.md`, apply `wiki-write-guard` to the proposed operation. Continue only on
+`Decision: approve`. If the guard returns `queue`, write only the approved
+review-queue item. If it returns `reject` or `escalate`, do not write target
+files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH`

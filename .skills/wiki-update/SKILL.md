@@ -11,6 +11,18 @@ description: >
 
 You are distilling knowledge from the current project into the user's Obsidian wiki. This skill works from any project directory, not just the obsidian-wiki repo.
 
+## Write Guard
+
+Before any wiki page write, manifest update, index update, or log update, apply
+`wiki-write-guard` to the proposed operation. Continue only on
+`Decision: approve`. If the guard returns `queue`, write only the approved
+review-queue item. If it returns `reject` or `escalate`, do not write target
+files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `~/.obsidian-wiki/config` to get:

@@ -10,6 +10,17 @@ description: >
 
 This is a thin router for **history sources only**. It does not replace `wiki-ingest` for documents.
 
+## Write Guard
+
+This router must not bypass `wiki-write-guard`. When dispatching to a
+destination history skill, forward the intended mode and require the destination
+skill to run the guard before any write. If the destination skill cannot produce
+a guard result, it may only inventory/report and must not write target files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old destination-skill body steps. Apply destination
+instructions only to translated, guard-approved target paths.
+
 ## Subcommands
 
 If the user invokes `/wiki-history-ingest <target>` (or equivalent text command), dispatch directly:

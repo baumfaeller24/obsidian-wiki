@@ -12,6 +12,17 @@ description: >
 
 You are exporting the wiki's wikilink graph to structured formats so it can be used in external tools (Gephi, Neo4j, custom scripts, browser visualization).
 
+## Write Guard
+
+Before creating or overwriting export files, apply `wiki-write-guard` as a
+Class 1/generated report operation. Continue only on `Decision: approve`. If
+the guard returns `queue`, write only the approved review-queue item. If it
+returns `reject` or `escalate`, do not write export files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH`

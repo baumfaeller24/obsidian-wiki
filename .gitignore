@@ -3,6 +3,9 @@
 *.pyc
 __pycache__/
 
+# Local quarantine for unclear or misplaced files. Do not commit its contents.
+/.local-quarantine/
+
 # Agent skill symlinks (created by setup.sh) — these are just pointers to .skills/
 # We track them so cloners get the symlinks too, but if your git doesn't
 # preserve symlinks, run `bash setup.sh` after cloning.

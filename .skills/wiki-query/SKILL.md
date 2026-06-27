@@ -13,6 +13,16 @@ description: >
 
 You are answering questions against a compiled Obsidian wiki, not raw source documents. The wiki contains pre-synthesized, cross-referenced knowledge.
 
+## Write Guard
+
+Querying is read-only. If you append query telemetry to `log.md`, apply
+`wiki-write-guard` first as a Class 1/generated bookkeeping write. If the guard
+does not approve the log write, skip logging and still answer the query.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `~/.obsidian-wiki/config` to get `OBSIDIAN_VAULT_PATH` (works from any project). Fall back to `.env` if you're inside the obsidian-wiki repo.

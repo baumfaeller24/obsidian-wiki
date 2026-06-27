@@ -12,6 +12,20 @@ description: >
 
 You are performing a destructive operation on the wiki. Always archive first, always confirm with the user before proceeding.
 
+## Write Guard
+
+Archive-only is a generated/snapshot write; rebuild and restore are dangerous
+writes. Before archiving, rebuilding, restoring, deleting, moving, or clearing
+any live wiki content, apply `wiki-write-guard`. Archive-only may continue only
+on `Decision: approve`. Rebuild and restore normally require
+`Decision: escalate` plus explicit Alex approval. After approval, prepare a
+concrete operation plan and run the guard again; continue only if that concrete
+plan is approved. Do not treat rebuild or restore as unattended routine work.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH`
@@ -24,6 +38,11 @@ You are performing a destructive operation on the wiki. Always archive first, al
 ## The Archive System
 
 Archives live at `$OBSIDIAN_VAULT_PATH/_archives/`. Each archive is a timestamped directory containing a full copy of the wiki state at that point.
+
+This archive layout is for a standalone `obsidian-wiki` vault. If the target is
+Alex's Codex memory vault, use only guard-approved support paths and do not
+create generic root directories such as `concepts/`, `skills/`, `references/`,
+`synthesis/`, or `journal/`.
 
 ```
 $OBSIDIAN_VAULT_PATH/

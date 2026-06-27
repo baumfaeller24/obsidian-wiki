@@ -12,6 +12,18 @@ description: >
 
 You are setting up a new Obsidian wiki vault (or repairing an existing one).
 
+## Write Guard
+
+Before creating directories, writing `.env`, initializing special files, or
+writing `.obsidian/` config, apply `wiki-write-guard` to the proposed operation.
+Continue only on `Decision: approve`. If the target vault is Alex's Codex memory
+vault, do not create the generic standalone schema unless the guard approves the
+translated Codex-vault target paths.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Step 1: Create .env
 
 If `.env` doesn't exist, create it from `.env.example`. Ask the user for:
@@ -34,6 +46,11 @@ If `.env` doesn't exist, create it from `.env.example`. Ask the user for:
    - Install instructions: see `.env.example` (QMD section).
 
 ## Step 2: Create Vault Directory Structure
+
+This standalone schema is for a normal `obsidian-wiki` vault. If
+`OBSIDIAN_VAULT_PATH` points to `/home/alex/codex-memory-vault`, do not create
+these generic root directories. Use the translated Codex-vault paths approved
+by `wiki-write-guard`.
 
 ```bash
 mkdir -p "$OBSIDIAN_VAULT_PATH"/{concepts,entities,skills,references,synthesis,journal,projects,_archives,_raw,.obsidian}

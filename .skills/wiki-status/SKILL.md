@@ -14,6 +14,18 @@ description: >
 
 You are computing the current state of the wiki: what's been ingested, what's new since last ingest, and what the delta looks like. This helps the user decide whether to append (ingest the delta) or rebuild (archive and reprocess everything).
 
+## Write Guard
+
+The normal status report is read-only. Before writing `_insights.md`, appending
+to `log.md`, or creating any generated status artifact, apply
+`wiki-write-guard` as a Class 1/generated report operation. Continue only on
+`Decision: approve`. If the guard rejects the write, report status without
+writing generated files.
+
+If the target vault is Alex's Codex memory vault, the guard overrides generic
+standalone paths and old body steps. Apply body instructions only to translated,
+guard-approved target paths.
+
 ## Before You Start
 
 1. Read `.env` to get `OBSIDIAN_VAULT_PATH`, `OBSIDIAN_SOURCES_DIR`, `CLAUDE_HISTORY_PATH`, `CODEX_HISTORY_PATH`
