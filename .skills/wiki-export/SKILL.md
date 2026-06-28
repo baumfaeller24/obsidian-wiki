@@ -19,6 +19,14 @@ You are exporting the wiki's wikilink graph to structured formats so it can be u
 1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`
 2. Confirm the vault has pages to export — if fewer than 5 pages exist, warn the user and stop
 
+## Write Guard
+
+Before writing `wiki-export/` files or OKF bundles, prepare the proposed
+operation and use `wiki-write-guard`. Generated export artifacts are usually
+Class 1, but overwrites and unusual target paths still need checking. Continue
+only on `approve`. On `queue`, write only the review-queue item. On `reject` or
+`escalate`, stop before touching target files.
+
 ## Project Filter (optional)
 
 If the user's invocation includes a project name — e.g. `/wiki-export prismor`, `"export the prismor project"`, `"export project:security"` — activate **project filter mode**:

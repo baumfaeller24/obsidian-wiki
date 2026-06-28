@@ -18,6 +18,17 @@ You are reviewing LLM-written pages that are waiting in `_staging/` for human ap
 2. If `WIKI_STAGED_WRITES` is not set or is `false`, tell the user: "Staged writes mode is not enabled. Set `WIKI_STAGED_WRITES=true` in your `.env` to use this feature." Then stop.
 3. Read the `_staging/` directory inventory.
 
+## Write Guard
+
+Before moving staged files into live wiki locations, applying patch files, or
+moving rejected files back to `_raw/`, prepare the proposed operation and use
+`wiki-write-guard`. Continue unattended only on `approve`. Staged-to-live
+promotion is semantic live-content work and should normally return `escalate`;
+that means stop unattended and require explicit human approval for the
+promotion. Do not treat explicit human approval as guard `approve`. On `queue`,
+write only the review-queue item. On `reject`, stop before touching target
+files.
+
 ## Invocation Forms
 
 ```

@@ -21,6 +21,13 @@ This skill can be invoked directly or via the `wiki-history-ingest` router (`/wi
 3. Read `index.md` at the vault root to know what the wiki already contains
 4. **Project Scoping** — read `WIKI_SKIP_PROJECTS` from config (comma-separated substrings). Exclude any project directory whose name contains one of them from **every** step below (scan, delta, sampling, manifest writes). If the user names extra projects to skip this run, add them. Apply the exclusion **once, uniformly** — don't hand-write `grep -v` filters into individual commands, which drifts between the scan and manifest steps.
 
+## Write Guard
+
+Before writing pages or updating `.manifest.json`, `index.md`, `log.md`, or
+`hot.md`, prepare the proposed operation with `source_agent: claude` and use
+`wiki-write-guard`. Continue only on `approve`. On `queue`, write only the
+review-queue item. On `reject` or `escalate`, stop before touching target files.
+
 ## Ingest Modes
 
 ### Append Mode (default)

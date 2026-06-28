@@ -22,6 +22,14 @@ You are performing a health check on an Obsidian wiki. Your goal is to find and 
 2. Read `index.md` for the full page inventory
 3. Read `log.md` for recent activity context
 
+## Write Guard
+
+Report-only linting needs no write approval. Before applying `--consolidate`
+fixes, creating pages, changing links/frontmatter, or updating tracking files,
+prepare the proposed operation and use `wiki-write-guard`. Continue only on
+`approve`. On `queue`, write only the review-queue item. On `reject` or
+`escalate`, stop before touching target files.
+
 ## Lint Checks
 
 Run these checks in order. Report findings as you go.

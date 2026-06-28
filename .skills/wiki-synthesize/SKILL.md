@@ -21,6 +21,13 @@ You are scanning the wiki for concepts that co-occur across many pages but have 
 
 When writing internal links in synthesis pages, apply the link format from `llm-wiki/SKILL.md` (Link Format section) using the `OBSIDIAN_LINK_FORMAT` value.
 
+## Write Guard
+
+Before creating synthesis pages or updating `.manifest.json`, `index.md`,
+`log.md`, or `hot.md`, prepare the proposed operation and use
+`wiki-write-guard`. Continue only on `approve`. On `queue`, write only the
+review-queue item. On `reject` or `escalate`, stop before touching target files.
+
 ## Step 1: Build the Co-occurrence Map
 
 Scan every non-special page in the vault (skip `index.md`, `log.md`, `hot.md`, `_insights.md`, `_meta/*`, `_archives/*`, `_raw/*`).

@@ -38,6 +38,15 @@ If no query is given, default to **recent sessions mode**: ingest the last 5 unp
 2. Read `$OBSIDIAN_VAULT_PATH/.manifest.json` → know what's already ingested.
 3. Read `$OBSIDIAN_VAULT_PATH/hot.md` if it exists → warm context on recent wiki activity.
 
+## Write Guard
+
+Before writing pages or updating `.manifest.json`, `index.md`, `log.md`, or
+`hot.md`, prepare the proposed operation with the target `source_agent` and use
+`wiki-write-guard`. Cross-agent pulls are allowed as sourced candidates or
+routine ingests, but cross-agent truth consolidation must escalate. Continue
+only on `approve`. On `queue`, write only the review-queue item. On `reject` or
+`escalate`, stop before touching target files.
+
 ---
 
 ## Step 1: Locate the Agent's History Root

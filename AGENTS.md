@@ -46,6 +46,7 @@ Skills live in `.skills/<name>/SKILL.md`. Match the user's intent to the right s
 | User says something like… | Skill |
 |---|---|
 | "set up my wiki" / "initialize" | `wiki-setup` |
+| "write", "move", "delete", "promote", "import", "rebuild", "commit staged writes", "update manifest/index/log/hot" in a wiki/vault context | `wiki-write-guard` before the write skill |
 | "/wiki-history-ingest claude" / "/wiki-history-ingest codex" / "/wiki-history-ingest hermes" / "/wiki-history-ingest pi" | `wiki-history-ingest` |
 | "ingest" / "add this to the wiki" / "process these docs" / "process this export" / "ingest this data" / logs, transcripts / "/ingest-url <url>" / "add this URL" / "ingest this link" / "save this page" | `wiki-ingest` |
 | "import my Claude history" / "mine my conversations" | `claude-history-ingest` |
@@ -82,6 +83,24 @@ Skills live in `.skills/<name>/SKILL.md`. Match the user's intent to the right s
 ## Cross-Project Usage
 
 The main use case: you're working in some other project and want to sync knowledge into your wiki or query it. Two global skills handle this — `wiki-update` and `wiki-query`. They work from any directory.
+
+## Write Guard
+
+Before any skill writes, moves, deletes, imports, rebuilds, promotes, or updates
+vault tracking files, run the proposed operation through `wiki-write-guard`.
+The guard may approve routine generated/staged/mechanical writes, queue unclear
+routine work, or escalate risky work. It approves file writes only; it does not
+approve git commits, pushes, releases, package publishing, or global agent
+installation.
+
+`WIKI_STAGED_WRITES=true` and `wiki-stage-commit` are still useful: staging
+controls where proposed pages land, while `wiki-write-guard` decides whether a
+write is safe to perform unattended at all.
+
+When `OBSIDIAN_VAULT_PATH=/home/alex/codex-memory-vault`, use the Codex
+memory-vault schema from `wiki-write-guard`. Do not create standalone
+`obsidian-wiki` roots such as `concepts/`, `skills/`, `references/`,
+`synthesis/`, or `journal/` in that vault.
 
 ### wiki-update (write to wiki)
 
@@ -121,6 +140,7 @@ See `wiki-query` and `wiki-export` skills for how the filter is applied.
 
 - **Compile, don't retrieve.** The wiki is pre-compiled knowledge. Update existing pages — don't append or duplicate.
 - **Track everything.** Update `.manifest.json` after ingesting, `index.md`, `log.md`, and `hot.md` after any write operation.
+- **Guard writes.** Use `wiki-write-guard` before unattended writes so routine memory upkeep can continue while risky semantic or destructive changes are escalated.
 - **Connect with `[[wikilinks]]`.** Every page should link to related pages. This is what makes it a knowledge graph, not a folder of files.
 - **Frontmatter is required.** Every wiki page needs: `title`, `category`, `tags`, `sources`, `created`, `updated`.
 - **Single source of truth.** Visibility tags shape how content is surfaced — they don't duplicate or separate it.

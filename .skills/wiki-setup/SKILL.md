@@ -12,6 +12,20 @@ description: >
 
 You are setting up a new Obsidian wiki vault (or repairing an existing one).
 
+## Write Guard
+
+Before creating `.env`, creating vault directories, writing special files,
+changing global config, installing hooks, or touching agent/global discovery
+paths, prepare the proposed operation and use `wiki-write-guard`. Setup,
+config, global hook, shell profile, and agent-discovery writes are Class 5 by
+default and must not run unattended.
+
+If `OBSIDIAN_VAULT_PATH` is `/home/alex/codex-memory-vault`, do not create the
+standalone root schema (`concepts/`, `skills/`, `references/`, `synthesis/`,
+`journal/`, `_staging/`). That vault has its own schema; use its `AGENTS.md` and
+the Codex memory-vault rules in `wiki-write-guard`, or stop and ask for a
+reviewed setup plan.
+
 ## Step 1: Create .env
 
 If `.env` doesn't exist, create it from `.env.example`. Ask the user for:

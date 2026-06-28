@@ -546,6 +546,28 @@ VAULT_ID=$(echo "$OBSIDIAN_VAULT_PATH" | md5sum 2>/dev/null || md5 -q - <<< "$OB
 STATE_DIR="$HOME/.obsidian-wiki/state/$VAULT_ID"
 ```
 
+### Write Guard Protocol
+
+Before any skill writes, moves, deletes, imports, rebuilds, promotes, or updates
+vault tracking files, prepare a proposed operation and check it with
+`wiki-write-guard`.
+
+The guard exists to allow safe unattended memory upkeep. It may approve generated
+reports, staging candidates, quick captures, and small mechanical maintenance.
+It must escalate destructive actions, live canonical promotion, semantic policy
+or architecture changes, broad reorganizations, cross-agent truth merging, git
+operations, package publishing, and global agent installation.
+
+This protocol does not replace `WIKI_STAGED_WRITES`. Staging controls where
+draft pages land; `wiki-write-guard` decides whether the write is safe to apply
+without human review.
+
+If `OBSIDIAN_VAULT_PATH` points to a vault with its own `AGENTS.md`, apply that
+owner-specific schema before deciding target paths. In particular, Alex's
+`/home/alex/codex-memory-vault` does not use the standalone root categories
+`concepts/`, `skills/`, `references/`, `synthesis/`, or `journal/`; translate or
+queue those targets according to `wiki-write-guard`.
+
 ### Standard "Before You Start" block
 
 Every skill's setup section should read:
