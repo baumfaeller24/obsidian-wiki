@@ -19,6 +19,17 @@ You are computing the current state of the wiki: what's been ingested, what's ne
 1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`, `OBSIDIAN_SOURCES_DIR`, `CLAUDE_HISTORY_PATH`, and `CODEX_HISTORY_PATH`.
 2. Read `.manifest.json` at the vault root — this is the ingest tracking ledger
 
+## Write Guard
+
+Normal status checks are read-only. Before writing `_insights.md` or appending
+to `log.md`, run `wiki-write-guard`.
+
+Treat `_insights.md` as Class 1 regenerable report output. Treat the `log.md`
+append as Class 3 append-only telemetry when it is a single bounded line and
+does not add a semantic claim. Continue only on `approve`. On `queue`, write
+only the queue item. On `reject` or `escalate`, stop before touching the target
+files and report the blocked write.
+
 ## The Manifest
 
 The manifest lives at `$OBSIDIAN_VAULT_PATH/.manifest.json`. It tracks every source file that has been ingested. If it doesn't exist, this is a fresh vault with nothing ingested.

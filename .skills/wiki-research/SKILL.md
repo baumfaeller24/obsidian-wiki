@@ -22,6 +22,14 @@ When writing internal links in generated pages, apply the link format from `llm-
 
 Confirm the research topic with the user if it's ambiguous. Then proceed.
 
+## Write Guard
+
+Before writing research pages or updating `.manifest.json`, `index.md`,
+`log.md`, or `hot.md`, prepare the proposed operation with `source_agent:
+external` and use `wiki-write-guard`. Web findings are external/untrusted until
+distilled and sourced. Continue only on `approve`. On `queue`, write only the
+review-queue item. On `reject` or `escalate`, stop before touching target files.
+
 ## Research Configuration (optional)
 
 If `references/research-config.md` exists in the vault, read it and apply any rules it defines:

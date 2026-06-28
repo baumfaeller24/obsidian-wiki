@@ -20,6 +20,13 @@ This skill has two modes:
 - **Full mode (default)** — classify the content and write a finished, cross-linked wiki page directly into the right category. This is the rest of this document (Steps 1–7).
 - **Quick mode (`--quick`)** — zero-friction staging: drop findings to `_raw/` in under 60 seconds with no manifest/index/log/QMD writes. Used for mid-session capture and by the session-end Stop hook. See below, then stop — do **not** run the full-mode steps.
 
+## Write Guard
+
+Before writing `_raw/` quick captures or live wiki pages, prepare the proposed
+operation and use `wiki-write-guard`. Continue only on `approve`. On `queue`,
+write only the review-queue item. On `reject` or `escalate`, stop before
+touching target files.
+
 ## Quick Mode (`--quick`)
 
 Trigger when invoked as `/wiki-capture --quick`, by "quick capture" / "capture this finding" / "save this bug fix" / "save this gotcha" / "drop this to raw" / "quick save to wiki", or automatically by the session-end Stop hook.

@@ -372,6 +372,7 @@ Everything lives in `.skills/`. Each skill is a markdown file the agent reads wh
 | Skill                   | What it does                                      | Slash Command            |
 | ----------------------- | ------------------------------------------------- | ------------------------ |
 | `wiki-setup`            | Initialize vault structure                        | `/wiki-setup`            |
+| `wiki-write-guard`      | Check whether wiki writes are safe to run unattended | internal / automatic   |
 | `wiki-ingest`           | Distill documents into wiki pages, plus chat exports, logs, transcripts, URLs | `/wiki-ingest`           |
 | `wiki-history-ingest`   | Unified history router (`claude`, `codex`, `hermes`, `pi`) | `/wiki-history-ingest <claude|codex|hermes|pi>` |
 | `claude-history-ingest` | Mine your `~/.claude` conversations and memories from Claude code and desktop  | `/claude-history-ingest` |

@@ -19,6 +19,13 @@ You are distilling knowledge from the current project into the user's Obsidian w
 
 When writing internal links in Steps 4–5, apply the link format from `llm-wiki/SKILL.md` (Link Format section) using the `OBSIDIAN_LINK_FORMAT` value.
 
+## Write Guard
+
+Before writing project pages or updating `.manifest.json`, `index.md`, `log.md`,
+or `hot.md`, prepare the proposed operation and use `wiki-write-guard`.
+Continue only on `approve`. On `queue`, write only the review-queue item. On
+`reject` or `escalate`, stop before touching target files.
+
 ## Step 1: Understand the Project
 
 Figure out what this project is by scanning the current working directory:

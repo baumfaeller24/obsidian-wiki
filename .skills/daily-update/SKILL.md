@@ -23,6 +23,16 @@ You run a lightweight maintenance pass over the wiki: check source freshness, re
    ```
 3. Read `$OBSIDIAN_VAULT_PATH/.manifest.json`.
 
+## Write Guard
+
+Before updating `index.md`, `hot.md`, `log.md`, any vault-scoped state file,
+launchd/cron files, shell rc files, or notification hooks, prepare the proposed
+operation and use `wiki-write-guard`. Continue unattended only on `approve`.
+Setup Mode writes such as LaunchAgent install, `launchctl load`, shell profile
+edits, and notification hook changes are Class 5 by default and must escalate.
+On `queue`, write only the review-queue item. On `reject`, stop before touching
+target files.
+
 ## Modes
 
 ### Run Mode (default — triggered by cron or `/daily-update`)

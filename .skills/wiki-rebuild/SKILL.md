@@ -21,6 +21,16 @@ You are performing a destructive operation on the wiki. Always archive first, al
    - **Archive + Rebuild** — snapshot, then reprocess all sources from scratch
    - **Restore** — bring back a previous archive
 
+## Write Guard
+
+Before archiving, rebuilding, restoring, deleting live content, or replacing
+metadata, prepare the proposed operation and use `wiki-write-guard`. Archive,
+rebuild, and restore are high-risk by default. Continue only on `approve` for a
+bounded archive/report operation. If the guard returns `escalate`, stop
+unattended and require explicit human approval before archive/rebuild/restore
+work. On `queue`, write only the review-queue item. On `reject`, stop before
+touching target files.
+
 ## The Archive System
 
 Archives live at `$OBSIDIAN_VAULT_PATH/_archives/`. Each archive is a timestamped directory containing a full copy of the wiki state at that point.

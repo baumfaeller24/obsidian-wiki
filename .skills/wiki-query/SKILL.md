@@ -28,6 +28,15 @@ If the user's message contains a new finding, an action request ("save this", "b
 - a full new page → `wiki-capture`
 - a project-knowledge sync → `wiki-update`
 
+## Write Guard
+
+Before the Step 6 `log.md` append, run `wiki-write-guard`.
+
+Treat the append as Class 3 read-only query telemetry only when it is one
+bounded log line and contains no new semantic claim. Continue with the append
+only on `approve`. On `reject` or `escalate`, answer the query without writing
+the log line.
+
 ## Before You Start
 
 1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). Prefer `~/.obsidian-wiki/config` for cross-project queries when present, even if it is a symlink to the vault `.env`. This gives `OBSIDIAN_VAULT_PATH` and any QMD variables. Works from any project directory.

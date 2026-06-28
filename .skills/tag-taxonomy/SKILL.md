@@ -19,6 +19,13 @@ You are enforcing consistent tagging across the wiki by normalizing tags to a co
 2. Read `$OBSIDIAN_VAULT_PATH/_meta/taxonomy.md` — this is the canonical tag list
 3. Read `index.md` to understand the wiki's scope
 
+## Write Guard
+
+Before changing tags, taxonomy rules, or page frontmatter, prepare the proposed
+operation and use `wiki-write-guard`. Continue only on `approve`. On `queue`,
+write only the review-queue item. On `reject` or `escalate`, stop before
+touching target files.
+
 ## The Taxonomy File
 
 The canonical tag vocabulary lives at `$OBSIDIAN_VAULT_PATH/_meta/taxonomy.md`. It defines:

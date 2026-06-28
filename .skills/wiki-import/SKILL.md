@@ -22,6 +22,13 @@ Either way, the import writes pages with correct frontmatter and wikilinks, then
 1. **Resolve config** — follow the Config Resolution Protocol in `llm-wiki/SKILL.md` (walk up CWD for `.env` → `~/.obsidian-wiki/config` → prompt setup). This gives `OBSIDIAN_VAULT_PATH`.
 2. Read `$OBSIDIAN_VAULT_PATH/AGENTS.md` if it exists — apply any owner-specific conventions.
 
+## Write Guard
+
+Before importing pages, overwriting stubs, or updating `.manifest.json`,
+`index.md`, `log.md`, or `hot.md`, prepare the proposed operation and use
+`wiki-write-guard`. Continue only on `approve`. On `queue`, write only the
+review-queue item. On `reject` or `escalate`, stop before touching target files.
+
 ## Step 1: Locate and Detect Source Type
 
 **Find the import source:**

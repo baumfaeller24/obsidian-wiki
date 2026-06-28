@@ -19,6 +19,14 @@ Two tools available: **Obsidian Bases** (native, GUI-driven, no plugin) and **Da
 3. Ask the user what they want to view if not specified — folder, tag, category, date range?
 4. Ask if they have Dataview installed if you're unsure which tool to use.
 
+## Write Guard
+
+Before writing `.base`, Dataview, or dashboard files, prepare the proposed
+operation and use `wiki-write-guard`. Generated dashboard files are usually
+Class 1, but path/schema changes still need checking. Continue only on
+`approve`. On `queue`, write only the review-queue item. On `reject` or
+`escalate`, stop before touching target files.
+
 ---
 
 ## Option A — Obsidian Bases (`.base` files)

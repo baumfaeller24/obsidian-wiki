@@ -26,6 +26,13 @@ You are generating a human-readable digest of recent wiki activity: what was lea
 4. Read `$OBSIDIAN_VAULT_PATH/hot.md` for current session context.
 5. If `$OBSIDIAN_VAULT_PATH/_insights.md` exists, read its **Anchor Pages** table — you'll use it later to identify which new pages became hubs.
 
+## Write Guard
+
+Read-only digest generation needs no write approval. Before saving a digest to
+`journal/` or appending to `log.md`, prepare the proposed operation and use
+`wiki-write-guard`. Continue only on `approve`. On `queue`, write only the
+review-queue item. On `reject` or `escalate`, stop before touching target files.
+
 ## Step 1: Collect Pages Active in the Period
 
 Glob all `.md` files under `$OBSIDIAN_VAULT_PATH`. Skip special/system files:

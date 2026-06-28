@@ -21,6 +21,15 @@ You are finding and merging wiki pages that cover the same concept under differe
 2. Read `index.md` to get the full page inventory with one-line descriptions and tags.
 3. Read `log.md` briefly — if a dedup run just happened, note what was already merged.
 
+## Write Guard
+
+Before merging pages, creating redirect stubs, moving content, or updating
+links/metadata, prepare the proposed operation and use `wiki-write-guard`.
+Page merges are high-risk by default. Continue only on `approve` for a bounded
+mechanical change. If the guard returns `escalate`, stop unattended and require
+explicit human approval before any merge. On `queue`, write only the
+review-queue item. On `reject`, stop before touching target files.
+
 ## Modes
 
 | Mode | Flag | Behavior |

@@ -20,6 +20,15 @@ This skill can be invoked directly or via the `wiki-history-ingest` router (`/wi
 2. Read `.manifest.json` at the vault root to check what has already been ingested
 3. Read `index.md` at the vault root to understand what the wiki already contains
 
+## Write Guard
+
+Before writing pages or updating `.manifest.json`, `index.md`, `log.md`, or
+`hot.md`, prepare the proposed operation with `source_agent: hermes` and use
+`wiki-write-guard`. Hermes is an external observed system by default; do not
+merge Hermes content into another agent's canonical truth without escalation.
+Continue only on `approve`. On `queue`, write only the review-queue item. On
+`reject` or `escalate`, stop before touching target files.
+
 ## Ingest Modes
 
 ### Append Mode (default)

@@ -24,6 +24,12 @@ You are weaving the wiki's knowledge graph tighter by finding and inserting miss
 
 When inserting links in Step 4, apply the link format from `llm-wiki/SKILL.md` (Link Format section) using the `OBSIDIAN_LINK_FORMAT` value. When `OBSIDIAN_LINK_FORMAT=markdown`, compute the relative `.md` path from the **file being edited** to the target page.
 
+## Write Guard
+
+Before inserting or rewriting wikilinks, prepare the proposed operation and use
+`wiki-write-guard`. Continue only on `approve`. On `queue`, write only the
+review-queue item. On `reject` or `escalate`, stop before touching target files.
+
 ## Step 1: Build the Page Registry
 
 Glob all `.md` files in the vault (excluding `_archives/`, `.obsidian/`). For each page, extract:

@@ -22,6 +22,13 @@ Obsidian stores graph settings in `<vault>/.obsidian/graph.json`. The `colorGrou
 2. Confirm `$OBSIDIAN_VAULT_PATH/.obsidian/` exists. If it doesn't, the vault has never been opened in Obsidian — tell the user to open the vault once in Obsidian, then re-run.
 3. **Warn the user if Obsidian is likely open**: Obsidian overwrites `graph.json` on close. Tell them to close the vault first, or be ready to reload (Cmd/Ctrl+R) and not touch the graph settings until they reload.
 
+## Write Guard
+
+Before rewriting `.obsidian/graph.json` or creating a backup, prepare the
+proposed operation and use `wiki-write-guard`. Continue only on `approve`. On
+`queue`, write only the review-queue item. On `reject` or `escalate`, stop
+before touching target files.
+
 ## Step 1: Pick a Mode
 
 Infer the mode from the user's phrasing. If ambiguous, default to **by-tag**.

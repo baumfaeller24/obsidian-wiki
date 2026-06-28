@@ -18,6 +18,16 @@ You are producing a focused, token-bounded context pack from the wiki. Unlike `w
 2. Read `$OBSIDIAN_VAULT_PATH/hot.md` if it exists — gives instant context on recent activity.
 3. Read `$OBSIDIAN_VAULT_PATH/index.md` — the full page inventory.
 
+## Write Guard
+
+This skill is read-only except for the optional Step 6 append to `log.md`.
+Before that append, run `wiki-write-guard`.
+
+Treat the append as Class 3 read-only retrieval telemetry only when it is one
+bounded log line and contains no new semantic claim. Continue with the append
+only on `approve`. On `reject` or `escalate`, return the context pack without
+writing the log line.
+
 ## Invocation Forms
 
 ```

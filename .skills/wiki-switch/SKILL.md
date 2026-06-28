@@ -13,6 +13,14 @@ description: >
 Each vault is a complete config file at `~/.obsidian-wiki/config.<name>`. The active vault is
 whichever file `~/.obsidian-wiki/config` symlinks to. Switching vaults means re-pointing that symlink.
 
+## Write Guard
+
+Listing or reading vault profiles needs no write approval. Before creating,
+updating, or switching `~/.obsidian-wiki/config*`, prepare the proposed
+operation and use `wiki-write-guard`. Config changes affect multiple agents, so
+escalate unless the user explicitly requested the specific profile change. On
+`reject` or `escalate`, stop before touching config files.
+
 ## Dispatch
 
 Parse the invocation and route to the right section:
