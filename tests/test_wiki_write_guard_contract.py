@@ -85,6 +85,20 @@ def test_read_only_telemetry_is_guarded_but_can_run_without_human_input() -> Non
         assert required in text
 
 
+def test_machine_preflight_is_documented_for_unattended_writes() -> None:
+    text = skill_text("wiki-write-guard")
+
+    for required in [
+        "## Machine Preflight",
+        "python -m obsidian_wiki guard-dry-run",
+        "--operation-json",
+        "--fail-on-non-approve",
+        "Continue to the target write only when the JSON decision is `approve`",
+        "Do not claim that an automated write path has been verified unless this preflight ran.",
+    ]:
+        assert compact(required) in compact(text)
+
+
 def test_write_capable_skills_reference_the_write_guard() -> None:
     missing = []
     for name in sorted(EXPECTED_GUARDED_SKILLS):

@@ -42,6 +42,30 @@ Before any write, the writer must prepare a proposed operation with:
 If the writer has not prepared this, build the proposed operation from the
 writer's stated plan, then check it before any file write.
 
+## Machine Preflight
+
+For unattended or automated writer runs, run the deterministic CLI preflight
+before applying any target write.
+
+1. Write the proposed operation as JSON to a temporary file outside the vault,
+   for example `/tmp/wiki-write-operation.json`.
+2. Run:
+   ```bash
+   python -m obsidian_wiki guard-dry-run \
+     --operation-json /tmp/wiki-write-operation.json \
+     --format json \
+     --fail-on-non-approve
+   ```
+3. Continue to the target write only when the JSON decision is `approve` and the
+   command exits `0`.
+4. On `queue`, write only the review-queue item; do not write the original
+   target.
+5. On `reject` or `escalate`, stop before touching target files.
+
+If the CLI is unavailable, fall back to this skill's semantic decision rules and
+treat the result as not machine-verified. Do not claim that an automated write
+path has been verified unless this preflight ran.
+
 ## Decisions
 
 Return exactly one decision:
@@ -328,6 +352,23 @@ Use these examples to check guard behavior:
 | Merge Hermes memory directly into Codex canonical truth | `escalate` |
 | Delete, rebuild, restore, mass move, or create a new root schema | `escalate` or `reject` |
 | Commit, push, publish, or install globally | `escalate` |
+
+Machine smoke command:
+
+```bash
+python -m obsidian_wiki guard-dry-run --format json --fail-on-non-approve
+```
+
+This built-in all-scenario smoke intentionally exits non-zero because some
+scenarios are supposed to `queue` or `escalate`. For a positive automation path
+smoke, run:
+
+```bash
+python -m obsidian_wiki guard-dry-run \
+  --scenario safe-log \
+  --format json \
+  --fail-on-non-approve
+```
 
 ## Output Format
 

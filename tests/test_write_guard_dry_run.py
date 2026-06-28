@@ -112,3 +112,41 @@ def test_guard_dry_run_cli_operation_json(capsys) -> None:
     assert exit_code == 0
     assert payload[0]["decision"] == "escalate"
     assert payload[0]["allowed_to_write_target"] is False
+
+
+def test_guard_dry_run_fail_on_non_approve_allows_approved_scenario(capsys) -> None:
+    exit_code = main(
+        [
+            "guard-dry-run",
+            "--scenario",
+            "safe-log",
+            "--format",
+            "json",
+            "--fail-on-non-approve",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert payload[0]["decision"] == "approve"
+
+
+def test_guard_dry_run_fail_on_non_approve_blocks_escalation(capsys) -> None:
+    exit_code = main(
+        [
+            "guard-dry-run",
+            "--scenario",
+            "canonical-promotion",
+            "--format",
+            "json",
+            "--fail-on-non-approve",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+
+    assert exit_code == 2
+    assert payload[0]["decision"] == "escalate"
