@@ -10,12 +10,14 @@ the vault from any project.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import sys
 from pathlib import Path
 
 from obsidian_wiki import __version__
+from obsidian_wiki.write_guard import DRY_RUN_SCENARIOS, evaluate_operation
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".obsidian-wiki"
@@ -387,6 +389,28 @@ def cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_guard_dry_run(args: argparse.Namespace) -> int:
+    if args.operation_json:
+        operation = json.loads(Path(args.operation_json).read_text(encoding="utf-8"))
+        scenarios = [(args.operation_json, operation)]
+    else:
+        selected = args.scenario or sorted(DRY_RUN_SCENARIOS)
+        scenarios = [(name, DRY_RUN_SCENARIOS[name]) for name in selected]
+
+    results = []
+    for name, operation in scenarios:
+        decision = evaluate_operation(operation)
+        results.append({"scenario": name, "operation": operation, **decision.as_dict()})
+
+    if args.format == "json":
+        print(json.dumps(results, indent=2, sort_keys=True))
+    else:
+        for result in results:
+            print(f"{result['scenario']}: {result['decision']} - {result['reason']}")
+            print(f"  action: {result['required_action']}")
+    return 0
+
+
 # ── Argument parsing ─────────────────────────────────────────────────────────
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
@@ -405,6 +429,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     ip = sub.add_parser("info", help="show install paths, version, and config")
     ip.set_defaults(func=cmd_info)
+
+    gp = sub.add_parser("guard-dry-run", help="evaluate wiki-write-guard scenarios without writing")
+    gp.add_argument(
+        "--scenario",
+        choices=sorted(DRY_RUN_SCENARIOS),
+        action="append",
+        help="built-in scenario to evaluate; may be repeated; defaults to all",
+    )
+    gp.add_argument("--operation-json", metavar="PATH", help="evaluate one proposed operation JSON file")
+    gp.add_argument("--format", choices=("text", "json"), default="text")
+    gp.set_defaults(func=cmd_guard_dry_run)
 
     return p
 
@@ -444,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     # Warn about stale installs on every command except `setup` (which fixes it)
     # and `info` (which calls _check_stale itself with richer output).
-    if getattr(args, "command", None) not in ("setup", "info", None):
+    if getattr(args, "command", None) not in ("setup", "info", "guard-dry-run", None):
         _check_stale()
     try:
         return args.func(args)
