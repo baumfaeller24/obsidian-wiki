@@ -19,6 +19,16 @@ You are helping the user browse and compare their Obsidian wiki knowledge filter
 2. Read `$OBSIDIAN_VAULT_PATH/.manifest.json` — this is the source-of-truth for what tool produced what.
 3. Read `$OBSIDIAN_VAULT_PATH/index.md` for page titles and one-line descriptions.
 
+## Write Guard
+
+This skill is read-only except for the Step 4 append to `log.md`. Before that
+append, run `wiki-write-guard`.
+
+Treat the append as Class 3 read-only browser telemetry only when it is one
+bounded log line and contains no new semantic claim. Continue with the append
+only on `approve`. On `reject` or `escalate`, return the memory-bridge result
+without writing the log line.
+
 ## Commands
 
 Parse the user's invocation to determine mode:

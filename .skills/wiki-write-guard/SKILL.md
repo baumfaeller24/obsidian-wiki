@@ -109,11 +109,15 @@ Examples:
 - generated block refresh
 - manifest/index/log/hot update tied to an approved Class 1, Class 2, or
   eligible Class 3 write
+- append-only `log.md` telemetry for a read-only query/report operation,
+  when it contains no new semantic claim and does not alter content pages
 
 Approve unattended only when all checks pass:
 
 - maximum 3 files changed
 - maximum 80 changed lines
+- for read-only query/report telemetry, exactly one bounded append line to
+  `log.md`
 - no delete
 - no rename or move
 - no new root schema
