@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping
 
 
@@ -53,6 +54,20 @@ class GuardDecision:
             "reason": self.reason,
             "allowed_to_write_target": self.allowed_to_write_target,
             "required_action": self.required_action,
+        }
+
+
+@dataclass(frozen=True)
+class GuardedWriteResult:
+    decision: GuardDecision
+    wrote: bool
+    target_path: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "decision": self.decision.as_dict(),
+            "wrote": self.wrote,
+            "target_path": self.target_path,
         }
 
 
@@ -173,6 +188,28 @@ def _target_paths(operation: Mapping[str, Any]) -> list[str]:
 def _has_allowed_prefix(path: str, prefixes: tuple[str, ...]) -> bool:
     normalized = path.strip().lstrip("./")
     return any(normalized == prefix.rstrip("/") or normalized.startswith(prefix) for prefix in prefixes)
+
+
+def guarded_append_log_line(vault_path: Path, operation: Mapping[str, Any], line: str) -> GuardedWriteResult:
+    """Append one log line to a vault only when the write guard approves it."""
+    decision = evaluate_operation(operation)
+    target = vault_path / "log.md"
+    if decision.decision != "approve" or not _is_exact_log_append_operation(operation) or "\n" in line:
+        return GuardedWriteResult(decision=decision, wrote=False, target_path=str(target))
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("a", encoding="utf-8") as handle:
+        handle.write(line.rstrip("\n") + "\n")
+    return GuardedWriteResult(decision=decision, wrote=True, target_path=str(target))
+
+
+def _is_exact_log_append_operation(operation: Mapping[str, Any]) -> bool:
+    return (
+        str(operation.get("write_type", "")).lower() == "log_update"
+        and _target_paths(operation) == ["log.md"]
+        and operation.get("append_only") is True
+        and int(operation.get("append_lines", 0) or 0) == 1
+    )
 
 
 DRY_RUN_SCENARIOS: dict[str, dict[str, Any]] = {
