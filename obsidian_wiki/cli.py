@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 from obsidian_wiki import __version__
-from obsidian_wiki.write_guard import DRY_RUN_SCENARIOS, evaluate_operation
+from obsidian_wiki.write_guard import DRY_RUN_SCENARIOS, evaluate_operation, guarded_append_log_line
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".obsidian-wiki"
@@ -413,6 +413,19 @@ def cmd_guard_dry_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_guarded_log_append(args: argparse.Namespace) -> int:
+    operation = json.loads(Path(args.operation_json).read_text(encoding="utf-8"))
+    result = guarded_append_log_line(Path(args.vault).expanduser().resolve(), operation, args.line)
+
+    if args.format == "json":
+        print(json.dumps(result.as_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"{result.decision.decision}: wrote={str(result.wrote).lower()}")
+        print(f"  target: {result.target_path}")
+        print(f"  reason: {result.decision.reason}")
+    return 0 if result.wrote else 2
+
+
 # ── Argument parsing ─────────────────────────────────────────────────────────
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
@@ -447,6 +460,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="return exit code 2 if any evaluated operation is not approved",
     )
     gp.set_defaults(func=cmd_guard_dry_run)
+
+    wap = sub.add_parser(
+        "guarded-log-append",
+        help="append one log line to a vault only after write-guard approval",
+    )
+    wap.add_argument("--vault", required=True, metavar="PATH", help="vault directory containing log.md")
+    wap.add_argument("--operation-json", required=True, metavar="PATH", help="proposed operation JSON file")
+    wap.add_argument("--line", required=True, help="single physical log line to append")
+    wap.add_argument("--format", choices=("text", "json"), default="text")
+    wap.set_defaults(func=cmd_guarded_log_append)
 
     return p
 
@@ -486,7 +509,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     # Warn about stale installs on every command except `setup` (which fixes it)
     # and `info` (which calls _check_stale itself with richer output).
-    if getattr(args, "command", None) not in ("setup", "info", "guard-dry-run", None):
+    if getattr(args, "command", None) not in ("setup", "info", "guard-dry-run", "guarded-log-append", None):
         _check_stale()
     try:
         return args.func(args)
