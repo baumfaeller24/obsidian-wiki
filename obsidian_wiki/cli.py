@@ -408,6 +408,8 @@ def cmd_guard_dry_run(args: argparse.Namespace) -> int:
         for result in results:
             print(f"{result['scenario']}: {result['decision']} - {result['reason']}")
             print(f"  action: {result['required_action']}")
+    if args.fail_on_non_approve and any(result["decision"] != "approve" for result in results):
+        return 2
     return 0
 
 
@@ -439,6 +441,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     gp.add_argument("--operation-json", metavar="PATH", help="evaluate one proposed operation JSON file")
     gp.add_argument("--format", choices=("text", "json"), default="text")
+    gp.add_argument(
+        "--fail-on-non-approve",
+        action="store_true",
+        help="return exit code 2 if any evaluated operation is not approved",
+    )
     gp.set_defaults(func=cmd_guard_dry_run)
 
     return p
