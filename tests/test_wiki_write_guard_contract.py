@@ -99,6 +99,29 @@ def test_machine_preflight_is_documented_for_unattended_writes() -> None:
         assert compact(required) in compact(text)
 
 
+def test_non_paper_pages_require_machine_readable_metadata_header() -> None:
+    for name in ["llm-wiki", "wiki-ingest", "wiki-update", "wiki-capture"]:
+        text = skill_text(name)
+        for required in ["created", "updated", "summary", "keywords"]:
+            assert required in text
+        assert "frontmatter is the" in text.lower()
+
+
+def test_raw_capture_format_has_machine_readable_metadata_header() -> None:
+    text = (SKILLS / "wiki-capture" / "references" / "RAW-FORMAT.md").read_text(encoding="utf-8")
+
+    for required in ["created", "updated", "summary", "keywords"]:
+        assert required in text
+    assert "frontmatter is the machine-readable header" in text.lower()
+
+
+def test_staging_guard_requires_summary_and_keywords_metadata() -> None:
+    text = skill_text("wiki-write-guard")
+
+    for required in ["`summary`", "`keywords`", "`created`", "`updated`", "`metadata_fields`"]:
+        assert required in text
+
+
 def test_write_capable_skills_reference_the_write_guard() -> None:
     missing = []
     for name in sorted(EXPECTED_GUARDED_SKILLS):

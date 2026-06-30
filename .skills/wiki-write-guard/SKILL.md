@@ -118,9 +118,10 @@ Examples:
 Approve unattended when:
 
 - target is an approved staging/candidate location
-- metadata is present: `title`, `category` or `type`, `tags`, `sources`,
-  `created`, `updated`, `confidence` or `base_confidence` when applicable,
-  and explicit `source_agent` when the source is agent history
+- metadata is present and listed in `metadata_fields`: `title`, `category` or
+  `type`, `tags`, `sources`, `summary`, `keywords`, `created`, `updated`,
+  `confidence` or `base_confidence` when applicable, and explicit
+  `source_agent` when the source is agent history
 - candidate cannot be mistaken for canonical truth
 
 ### Class 3: Small Mechanical Maintenance

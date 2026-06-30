@@ -46,7 +46,7 @@ Trigger when invoked as `/wiki-capture --quick`, by "quick capture" / "capture t
 
 5. **Infer project context** from repo names, file paths, framework mentions, error messages. Use the most specific name you can reliably infer; else `null`.
 
-6. **Write raw files** — for each cluster, write `$OBSIDIAN_RAW_DIR/<ISO-date>-<slug>.md`. Read `references/RAW-FORMAT.md` for the full frontmatter spec, finding-block body structure, and provenance/confidence calibration. Per-cluster fields that vary: `title`, `tags` (2–4 from taxonomy), `summary` (≤200 chars), `project` (inferred or `null`), `base_confidence` (0.6 discussed → 0.75 fix applied → 0.9 test confirmed), `provenance.extracted`/`provenance.inferred` (sum to 1.0), `lifecycle_changed` (today), `sources` (`"<project> session (<YYYY-MM-DD>)"`).
+6. **Write raw files** — for each cluster, write `$OBSIDIAN_RAW_DIR/<ISO-date>-<slug>.md`. Read `references/RAW-FORMAT.md` for the full frontmatter spec, finding-block body structure, and provenance/confidence calibration. Per-cluster fields that vary: `title`, `tags` (2–4 from taxonomy), `keywords` (3–8 retrieval terms), `summary` (≤200 chars), `project` (inferred or `null`), `base_confidence` (0.6 discussed → 0.75 fix applied → 0.9 test confirmed), `provenance.extracted`/`provenance.inferred` (sum to 1.0), `created`/`updated` (same ISO timestamp on first write), `lifecycle_changed` (today), `sources` (`"<project> session (<YYYY-MM-DD>)"`).
 
 7. **Confirm** — list staged files and tell the user to run `/wiki-ingest` to promote them:
    ```
@@ -132,6 +132,7 @@ title: >-
   <Title>
 category: <synthesis|concepts|references|journal|skills>
 tags: [<2-5 domain tags from taxonomy>]
+keywords: [<3-8 retrieval keywords>]
 sources:
   - conversation:<ISO-date>
 created: <ISO-8601 timestamp>
@@ -147,6 +148,10 @@ lifecycle: draft
 lifecycle_changed: <ISO date today>
 ---
 ```
+
+The frontmatter is the machine-readable header: it carries date, time, content
+summary, and keywords. Do not add a separate visible date/content header to the
+body. Update `updated` only when the note's substantive content changes.
 
 Body structure by type:
 

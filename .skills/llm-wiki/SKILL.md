@@ -157,7 +157,15 @@ The manifest enables:
 
 ## Page Template
 
-When creating a new wiki page, use this structure:
+For non-paper wiki pages, the YAML frontmatter is the required machine-readable
+header. Do not add a separate visible date/content header above the page body.
+Set `created` and `updated` on creation; update `updated` only when the page's
+substantive content changes, not for purely mechanical link or formatting
+cleanup. Use `summary` as the compact content description and `keywords` as a
+small Stichwortregister for retrieval. Raw captures, logs, and academic paper
+deep-dives have their own source-specific metadata rules.
+
+When creating a new non-paper wiki page, use this structure:
 
 ```markdown
 ---
@@ -165,6 +173,7 @@ title: Page Title
 category: concepts
 tags: [ml, architecture]
 aliases: [alternate name]
+keywords: [attention, transformer, sequence modeling]
 relationships:
   - target: "[[concepts/related-concept]]"
     type: extends

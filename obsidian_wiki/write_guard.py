@@ -17,6 +17,15 @@ APPROVED_CLASS_1_PREFIXES = (
     "raw/",
 )
 APPROVED_CLASS_2_PREFIXES = ("_raw/", "_staging/", "staging/", "inbox/", ".memvault/queue/")
+REQUIRED_STAGING_METADATA_FIELDS = {
+    "title",
+    "tags",
+    "sources",
+    "summary",
+    "created",
+    "updated",
+    "keywords",
+}
 HIGH_RISK_WRITE_TYPES = {
     "canonical_promotion",
     "delete",
@@ -123,6 +132,14 @@ def _evaluate_class_2(operation: Mapping[str, Any]) -> GuardDecision:
         return _queue("Class 2 target is not an approved staging/candidate location")
     if not _truthy(operation, "metadata_present"):
         return _queue("staging candidate lacks required metadata")
+    metadata_fields = _metadata_fields(operation)
+    if not metadata_fields:
+        return _queue("staging candidate must list metadata_fields")
+    if not REQUIRED_STAGING_METADATA_FIELDS.issubset(metadata_fields):
+        missing = sorted(REQUIRED_STAGING_METADATA_FIELDS - metadata_fields)
+        return _queue(f"staging candidate lacks required metadata fields: {', '.join(missing)}")
+    if not ({"category", "type"} & metadata_fields):
+        return _queue("staging candidate lacks required metadata fields: category or type")
     return _approve("staging candidate is isolated from canonical truth")
 
 
@@ -183,6 +200,13 @@ def _target_paths(operation: Mapping[str, Any]) -> list[str]:
     if isinstance(raw, str):
         return [raw]
     return [str(path) for path in raw]
+
+
+def _metadata_fields(operation: Mapping[str, Any]) -> set[str]:
+    raw = operation.get("metadata_fields", [])
+    if isinstance(raw, str):
+        return {raw}
+    return {str(field) for field in raw}
 
 
 def _has_allowed_prefix(path: str, prefixes: tuple[str, ...]) -> bool:

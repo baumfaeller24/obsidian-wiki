@@ -108,6 +108,9 @@ Things that aren't project-specific go in the global categories:
 ### Page format
 
 Every page needs YAML frontmatter:
+Frontmatter is the machine-readable header for date, time, summary, and
+retrieval keywords. Do not add a separate visible date/content header to the
+page body.
 
 ```markdown
 ---
@@ -115,6 +118,7 @@ title: >-
     Page Title
 category: concepts
 tags: [tag1, tag2]
+keywords: [keyword1, keyword2, keyword3]
 sources: [projects/<project-name>]
 summary: >-
     One or two sentences (≤200 chars) describing what this page covers.
@@ -131,6 +135,8 @@ updated: TIMESTAMP
 
 Use folded scalar syntax (summary: >-) for title and summary to keep frontmatter parser-safe across punctuation (:, #, quotes) without escaping rules.
 Keep the title and summary contents indented by two spaces under summary: >-.
+Use `keywords:` as a compact Stichwortregister for retrieval. Prefer 3-8 stable
+terms that a future query might use; do not duplicate every tag.
 
 # Page Title
 
@@ -141,6 +147,10 @@ Use [[wikilinks]] to connect to other pages.
 ```
 
 **Write a `summary:` frontmatter field** on every new/updated page (1–2 sentences, ≤200 chars), using `>-` folded style. For project sync, a good summary answers "what does this page tell me about the project I wouldn't guess from its title?" This field powers cheap retrieval by `wiki-query`.
+
+**Write a `keywords:` frontmatter field** on every new/updated page unless the
+target is a raw capture, log, or academic paper deep-dive with its own
+bibliographic metadata. Keep it short and query-oriented.
 
 **Apply provenance markers** per `llm-wiki` (Provenance Markers section). For project sync specifically:
 

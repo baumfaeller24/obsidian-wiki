@@ -303,12 +303,17 @@ For each page in your plan:
 - Place in the correct category directory
 - Add `[[wikilinks]]` to at least 2-3 existing pages
 - Include the source in the `sources` frontmatter field. In raw mode: derive from `capture_source` + `sources` frontmatter of the `_raw/` file — never use the `_raw/` path itself (see Raw Mode section)
+- Include `created`, `updated`, `summary`, and `keywords` in frontmatter for
+  every non-paper wiki page. `keywords` is the compact Stichwortregister for
+  future retrieval.
 
 **If updating an existing page:**
 - Read the current page first
 - Merge new information — don't just append
-- Update the `updated` timestamp in frontmatter
+- Update the `updated` timestamp in frontmatter for substantive content changes
 - Add the new source to the `sources` list
+- Refresh `summary` and `keywords` when the page meaning or retrieval terms
+  changed
 - Resolve any contradictions between old and new information (note them if unresolvable)
 
 **Populate `relationships:` when context is clear** — if Step 2 identified typed relationships between this page and another, add a `relationships:` block to the frontmatter (defined in `llm-wiki/SKILL.md`, Typed Relationships section). Only add entries where the source text makes the direction and type unambiguous. When in doubt, use `related_to` or omit the block. Example:
@@ -322,6 +327,11 @@ relationships:
 ```
 
 **Write a `summary:` frontmatter field** on every new page (1–2 sentences, ≤200 characters) answering "what is this page about?" for a reader who hasn't opened it. When updating an existing page whose meaning has shifted, rewrite the summary to match the new content. This field is what `wiki-query`'s cheap retrieval path reads — a missing or stale summary forces expensive full-page reads.
+
+**Write a `keywords:` frontmatter field** on every new non-paper page (3-8
+stable retrieval terms). When updating an existing page, adjust `keywords` only
+when the page's topic coverage changes. Do not add a separate visible
+date/content header to the body; frontmatter is the header.
 
 **Add confidence and lifecycle fields** to every new page's frontmatter:
 
@@ -445,14 +455,14 @@ When ingesting a directory, process sources one at a time but maintain a running
 ## Quality Checklist
 
 After ingesting, verify:
-- [ ] Every new page has frontmatter with title, category, tags, sources
+- [ ] Every new non-paper page has frontmatter with title, category, tags, sources, summary, keywords, created, updated
 - [ ] Every new page has at least 2 wikilinks to existing pages
 - [ ] No orphaned pages (pages with zero incoming links)
 - [ ] `index.md` reflects all changes
 - [ ] `log.md` has the ingest entry
 - [ ] Source attribution is present for every new claim
 - [ ] Inferred and ambiguous claims are marked with `^[inferred]` / `^[ambiguous]`; `provenance:` frontmatter block is present on new and updated pages
-- [ ] Every new/updated page has a `summary:` frontmatter field (1–2 sentences, ≤200 chars)
+- [ ] Every new/updated non-paper page has current `summary:` and `keywords:` frontmatter fields
 - [ ] `relationships:` block is present on pages where source text made typed connections clear; all entries use an allowed type from `llm-wiki/SKILL.md`
 - [ ] If `QMD_WIKI_COLLECTION` is set and the QMD CLI is available, `qmd update` has run after writing pages
 - [ ] If QMD reports missing vectors or embeddings may be stale, `qmd embed` has run
