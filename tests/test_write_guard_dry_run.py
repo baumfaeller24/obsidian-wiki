@@ -80,6 +80,56 @@ def test_underspecified_class_3_is_queued_not_approved() -> None:
     assert decision.allowed_to_write_target is False
 
 
+def test_staging_candidate_with_required_metadata_is_approved() -> None:
+    decision = evaluate_operation(
+        {
+            "operation_class": "class_2",
+            "write_type": "staging_candidate",
+            "target_paths": ["_staging/concepts/example.md"],
+            "metadata_present": True,
+            "metadata_fields": [
+                "title",
+                "category",
+                "tags",
+                "sources",
+                "summary",
+                "created",
+                "updated",
+                "keywords",
+                "base_confidence",
+            ],
+        }
+    )
+
+    assert decision.decision == "approve"
+    assert decision.allowed_to_write_target is True
+
+
+def test_staging_candidate_without_keywords_is_queued() -> None:
+    decision = evaluate_operation(
+        {
+            "operation_class": "class_2",
+            "write_type": "staging_candidate",
+            "target_paths": ["_staging/concepts/example.md"],
+            "metadata_present": True,
+            "metadata_fields": [
+                "title",
+                "category",
+                "tags",
+                "sources",
+                "summary",
+                "created",
+                "updated",
+                "base_confidence",
+            ],
+        }
+    )
+
+    assert decision.decision == "queue"
+    assert "keywords" in decision.reason
+    assert decision.allowed_to_write_target is False
+
+
 def test_guard_dry_run_cli_builtin_json_output(capsys) -> None:
     exit_code = main(["guard-dry-run", "--scenario", "safe-log", "--format", "json"])
 

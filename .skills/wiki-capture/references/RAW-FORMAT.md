@@ -12,6 +12,8 @@ category: skills
 tags:
   - topic/<primary-tech>
   - <1-3 additional domain tags from vault taxonomy>
+keywords:
+  - <3-8 retrieval keywords>
 summary: "<1–2 sentences, ≤200 chars — what is this finding about?>"
 tier: supporting
 related: []
@@ -28,8 +30,14 @@ provenance:
   inferred: 0.15
 sources:
   - "<project> session (<YYYY-MM-DD>)"
+created: <ISO-8601 timestamp>
+updated: <ISO-8601 timestamp>
 ---
 ```
+
+The frontmatter is the machine-readable header for `_raw/` files. It carries
+date, time, content summary, and retrieval keywords; do not add a separate
+visible date/content header to the body.
 
 ## Body: Finding Block
 

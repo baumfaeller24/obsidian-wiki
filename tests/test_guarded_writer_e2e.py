@@ -35,6 +35,17 @@ def approved_non_log_operation() -> dict[str, object]:
         "write_type": "staging_candidate",
         "target_paths": ["_staging/example.md"],
         "metadata_present": True,
+        "metadata_fields": [
+            "title",
+            "category",
+            "tags",
+            "sources",
+            "summary",
+            "created",
+            "updated",
+            "keywords",
+            "base_confidence",
+        ],
     }
 
 
