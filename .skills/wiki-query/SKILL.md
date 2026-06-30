@@ -30,11 +30,39 @@ If the user's message contains a new finding, an action request ("save this", "b
 
 ## Write Guard
 
-Before the Step 6 `log.md` append, run `wiki-write-guard`.
+The Step 6 `log.md` append MUST use the guarded writer command as the
+`wiki-write-guard` enforcement path. Do not append to `log.md` by hand, with
+shell redirection, with an editor, or with a direct Python file write.
 
 Treat the append as Class 3 read-only query telemetry only when it is one
-bounded log line and contains no new semantic claim. Continue with the append
-only on `approve`. On `reject` or `escalate`, answer the query without writing
+bounded physical log line and contains no new semantic claim. The operation JSON
+for this skill's log line is:
+
+```json
+{
+  "operation_class": "class_3",
+  "write_type": "log_update",
+  "target_paths": ["log.md"],
+  "changed_files": 1,
+  "changed_lines": 1,
+  "append_only": true,
+  "append_lines": 1,
+  "semantic_claim": false,
+  "source_absence_reason": "runtime telemetry event"
+}
+```
+
+Pass that operation file to:
+
+```bash
+python -m obsidian_wiki guarded-log-append \
+  --vault "$OBSIDIAN_VAULT_PATH" \
+  --operation-json "$OPERATION_JSON" \
+  --line "$LOG_LINE"
+```
+
+Continue only when the command exits `0` and reports `wrote=true`. On any
+nonzero exit, `reject`, `queue`, or `escalate`, answer the query without writing
 the log line.
 
 ## Before You Start
@@ -228,10 +256,18 @@ Include a **`Source code:`** line in the answer with that absolute path. When th
 
 ### Step 6: Log the Query
 
-Append to `log.md`. This `log.md` append is the *only* write this skill performs — do not edit anything else.
+Build one bounded physical log line. This guarded `log.md` append is the *only*
+write this skill performs — do not edit anything else.
+
 ```
 - [TIMESTAMP] QUERY query="the user's question" result_pages=N mode=normal|index_only|filtered escalated=true|false
 ```
+
+Replace embedded newlines in the query with spaces before logging. Then call
+`python -m obsidian_wiki guarded-log-append` with the operation JSON from the
+Write Guard section. If the command does not write, do not retry with a direct
+append; return the answer normally. The only allowed append to `log.md` is the
+guarded command above.
 
 ## Answer Format
 
