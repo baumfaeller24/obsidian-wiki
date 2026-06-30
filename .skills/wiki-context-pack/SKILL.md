@@ -21,11 +21,39 @@ You are producing a focused, token-bounded context pack from the wiki. Unlike `w
 ## Write Guard
 
 This skill is read-only except for the optional Step 6 append to `log.md`.
-Before that append, run `wiki-write-guard`.
+That telemetry write MUST use the guarded writer command as the
+`wiki-write-guard` enforcement path. Do not append to `log.md` by hand, with
+shell redirection, with an editor, or with a direct Python file write.
 
 Treat the append as Class 3 read-only retrieval telemetry only when it is one
-bounded log line and contains no new semantic claim. Continue with the append
-only on `approve`. On `reject` or `escalate`, return the context pack without
+bounded physical log line and contains no new semantic claim. The operation JSON
+for this skill's log line is:
+
+```json
+{
+  "operation_class": "class_3",
+  "write_type": "log_update",
+  "target_paths": ["log.md"],
+  "changed_files": 1,
+  "changed_lines": 1,
+  "append_only": true,
+  "append_lines": 1,
+  "semantic_claim": false,
+  "source_absence_reason": "runtime telemetry event"
+}
+```
+
+Pass that operation file to:
+
+```bash
+python -m obsidian_wiki guarded-log-append \
+  --vault "$OBSIDIAN_VAULT_PATH" \
+  --operation-json "$OPERATION_JSON" \
+  --line "$LOG_LINE"
+```
+
+Continue only when the command exits `0` and reports `wrote=true`. On any
+nonzero exit, `reject`, `queue`, or `escalate`, return the context pack without
 writing the log line.
 
 ## Invocation Forms
@@ -129,10 +157,16 @@ No relevant pages found. Consider running /wiki-ingest to add sources about this
 
 ### Step 6: Log
 
-Append to `$OBSIDIAN_VAULT_PATH/log.md`:
+Build one bounded physical log line:
 ```
 - [TIMESTAMP] CONTEXT_PACK topic="<topic>" budget=<N> actual_tokens=<M> pages_included=<K> pages_dropped=<D>
 ```
+
+Replace embedded newlines in the topic with spaces before logging. Then call
+`python -m obsidian_wiki guarded-log-append` with the operation JSON from the
+Write Guard section. If the command does not write, do not retry with a direct
+append; return the context pack normally. The only allowed append to `log.md`
+is the guarded command above.
 
 ## Use Cases
 
