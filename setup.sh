@@ -17,7 +17,7 @@
 #      Global:
 #        - ~/.claude/skills/      (Claude Code, portable skills only)
 #        - ~/.gemini/skills/      (Gemini CLI)
-#        - ~/.codex/skills/       (Codex)
+#        - ~/.codex/skills/       (Codex, minimal profile by default)
 #        - ~/.hermes/skills/      (Hermes)
 #        - ~/.openclaw/skills/    (OpenClaw)
 #        - ~/.copilot/skills/     (GitHub Copilot CLI)
@@ -33,10 +33,36 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/.skills"
 
+CODEX_MINIMAL_SKILLS=(
+  impl-validator
+  wiki-capture
+  wiki-context-pack
+  wiki-ingest
+  wiki-lint
+  wiki-query
+  wiki-setup
+  wiki-stage-commit
+  wiki-status
+  wiki-tools
+  wiki-update
+  wiki-write-guard
+)
+
+CODEX_SKILL_PROFILE="${OBSIDIAN_CODEX_SKILL_PROFILE:-minimal}"
+case "$CODEX_SKILL_PROFILE" in
+  minimal|full) ;;
+  *)
+    echo "⚠️   Unknown OBSIDIAN_CODEX_SKILL_PROFILE='$CODEX_SKILL_PROFILE'; using minimal" >&2
+    CODEX_SKILL_PROFILE="minimal"
+    ;;
+esac
+
 # install_skills <target_dir> <label> [relative|absolute] [skill-subset...]
 # "relative" requires target_dir under $SCRIPT_DIR and emits ../-prefixed
 # targets matching the committed symlinks. Extra args restrict the install
 # to a named subset of skills (e.g. portable-only into ~/.claude/skills).
+# When a subset is supplied, managed obsidian-wiki skills outside that subset
+# are removed from the target to keep agent startup skill budgets small.
 install_skills() {
   local target_dir="$1"
   local label="$2"
@@ -65,6 +91,22 @@ install_skills() {
   fi
 
   mkdir -p "$target_dir"
+  if [ ${#subset[@]} -gt 0 ]; then
+    for skill in "$SKILLS_DIR"/*/; do
+      local skill_name link_path match want
+      skill_name="$(basename "$skill")"
+      match=0
+      for want in "${subset[@]}"; do [ "$want" = "$skill_name" ] && match=1 && break; done
+      [ "$match" = 0 ] || continue
+      link_path="$target_dir/$skill_name"
+      if [ -L "$link_path" ] || [ -f "$link_path" ]; then
+        rm "$link_path"
+      elif [ -d "$link_path" ] && [ -e "$link_path/SKILL.md" ]; then
+        rm -rf "$link_path"
+      fi
+    done
+  fi
+
   for skill in "$SKILLS_DIR"/*/; do
     local skill_name link_path link_target
     skill_name="$(basename "$skill")"
@@ -140,6 +182,7 @@ fi
 cat > "$GLOBAL_CONFIG" <<EOF
 OBSIDIAN_VAULT_PATH="$VAULT_PATH"
 OBSIDIAN_WIKI_REPO="$SCRIPT_DIR"
+OBSIDIAN_CODEX_SKILL_PROFILE="$CODEX_SKILL_PROFILE"
 EOF
 echo "✅  Global config written to ~/.obsidian-wiki/config"
 
@@ -183,7 +226,11 @@ install_skills "$HOME/.claude/skills" "~/.claude/skills/ (wiki-update, wiki-quer
 # so discovery works regardless of whether the user relies on AGENTS.md.
 install_skills "$HOME/.gemini/skills"             "~/.gemini/skills/ (Gemini CLI)"
 install_skills "$HOME/.gemini/antigravity/skills" "~/.gemini/antigravity/skills/ (Antigravity, legacy)"
-install_skills "$HOME/.codex/skills"              "~/.codex/skills/"
+if [ "$CODEX_SKILL_PROFILE" = "full" ]; then
+  install_skills "$HOME/.codex/skills"            "~/.codex/skills/ (Codex full profile)"
+else
+  install_skills "$HOME/.codex/skills"            "~/.codex/skills/ (Codex minimal profile)" absolute "${CODEX_MINIMAL_SKILLS[@]}"
+fi
 install_skills "$HOME/.hermes/skills"             "~/.hermes/skills/ (Hermes default)"
 # Hermes: active named profile (if $HERMES_HOME points to a non-default location)
 if [ -n "$HERMES_HOME" ] && [ "$HERMES_HOME" != "$HOME/.hermes" ]; then
@@ -303,6 +350,7 @@ echo "────────────────────────�
 echo " Setup complete!"
 echo ""
 echo " Skills found:    $SKILL_COUNT"
+echo " Codex profile:   $CODEX_SKILL_PROFILE"
 echo " Agents ready:    Claude Code, Cursor, Windsurf, Gemini CLI, Antigravity,"
 echo "                  Codex, Hermes, OpenClaw, OpenCode, Aider, Factory Droid,"
 echo "                  Trae, Trae CN, Kiro, Pi, GitHub Copilot (CLI + VS Code Chat)"

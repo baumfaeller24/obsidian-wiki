@@ -2,7 +2,7 @@
 
 A skill-based framework for AI coding agents — Claude Code, Cursor, Windsurf, Pi, Gemini CLI, Google Antigravity, Codex, Hermes, OpenClaw, OpenCode, Aider, Factory Droid, Trae / Trae CN, Kiro, GitHub Copilot (CLI + VS Code Chat) — to build and maintain an Obsidian wiki using Karpathy's LLM Wiki pattern. No scripts, no API keys — the agent **is** the LLM.
 
-> Running `bash setup.sh` wires up every supported agent: project-local skill symlinks (`.claude/skills/`, `.cursor/skills/`, `.windsurf/skills/`, `.agents/skills/`, `.kiro/skills/`), global symlinks (`~/.claude/skills/`, `~/.gemini/skills/`, `~/.codex/skills/`, `~/.hermes/skills/`, `~/.openclaw/skills/`, `~/.copilot/skills/`, `~/.trae/skills/`, `~/.trae-cn/skills/`, `~/.kiro/skills/`, `~/.agents/skills/`), and always-on rule files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.hermes.md`, `.cursor/rules/…`, `.windsurf/rules/…`, `.kiro/steering/…`, `.agent/rules/…`, `.agent/workflows/…`, `.github/copilot-instructions.md`). See the [Agent Compatibility table in README.md](README.md#agent-compatibility) for the full matrix.
+> Running `bash setup.sh` wires up every supported agent: project-local skill symlinks (`.claude/skills/`, `.cursor/skills/`, `.windsurf/skills/`, `.agents/skills/`, `.kiro/skills/`), global symlinks (`~/.claude/skills/`, `~/.gemini/skills/`, `~/.codex/skills/`, `~/.hermes/skills/`, `~/.openclaw/skills/`, `~/.copilot/skills/`, `~/.trae/skills/`, `~/.trae-cn/skills/`, `~/.kiro/skills/`, `~/.agents/skills/`), and always-on rule files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.hermes.md`, `.cursor/rules/…`, `.windsurf/rules/…`, `.kiro/steering/…`, `.agent/rules/…`, `.agent/workflows/…`, `.github/copilot-instructions.md`). Codex gets a minimal global profile by default to avoid startup skill-budget pressure. See the [Agent Compatibility table in README.md](README.md#agent-compatibility) for the full matrix.
 
 ## Install via pip (no clone needed)
 
@@ -11,7 +11,9 @@ pip install obsidian-wiki
 obsidian-wiki setup --vault /path/to/your/vault
 ```
 
-This does everything `setup.sh` does without a clone: writes `~/.obsidian-wiki/config` and installs every skill into all supported agents' skills directories (symlinked to the installed package, so `pip install -U obsidian-wiki` upgrades them everywhere). Add `--project .` to also drop project-local skills and the `AGENTS.md` / rule files into the current repo, or `--copy` to copy skill files instead of symlinking. Run `obsidian-wiki info` to see resolved paths.
+This does everything `setup.sh` does without a clone: writes `~/.obsidian-wiki/config` and installs skills into supported agents' skills directories (symlinked to the installed package, so `pip install -U obsidian-wiki` upgrades them centrally). Codex installs the minimal global profile by default; it includes `wiki-tools`, a router that loads less-common bundled skills from the repo on demand. Add `--codex-profile full` only if you intentionally want all bundled skills visible globally in Codex. Add `--project .` to also drop project-local skills and the `AGENTS.md` / rule files into the current repo, or `--copy` to copy skill files instead of symlinking. Run `obsidian-wiki info` to see resolved paths and profile drift.
+
+For the `git clone` path, use `OBSIDIAN_CODEX_SKILL_PROFILE=full bash setup.sh` to choose the full Codex profile. Without that variable, `setup.sh` prunes old obsidian-wiki Codex symlinks down to the minimal profile.
 
 The rest of this doc covers the `git clone` + `setup.sh` path.
 
@@ -130,6 +132,7 @@ Knowledge that's project-specific goes under `projects/<name>/`. Knowledge that'
 | `OBSIDIAN_MAX_PAGES_PER_INGEST` | Max pages updated per ingest | `15` |
 | `CLAUDE_HISTORY_PATH` | Where to find Claude data | *auto-discovers from `~/.claude`* |
 | `CODEX_HISTORY_PATH` | Where to find Codex data | *defaults to `~/.codex`* |
+| `OBSIDIAN_CODEX_SKILL_PROFILE` | Codex global skill profile: `minimal` or `full` | `minimal` |
 | `PI_HISTORY_PATH` | Where to find Pi sessions | *defaults to `~/.pi/agent/sessions`* |
 | `LINT_SCHEDULE` | Wiki health check frequency | `weekly` |
 
@@ -149,6 +152,7 @@ Knowledge that's project-specific goes under `projects/<name>/`. Knowledge that'
 | `wiki-query` | Answer questions from the compiled wiki with citations |
 | `wiki-lint` | Find orphans, broken links, stale content, contradictions |
 | `wiki-update` | Sync current project's knowledge into the vault (works from any project) |
+| `wiki-tools` | Route less-common wiki operations to the right bundled skill when Codex uses the minimal profile |
 | `skill-creator` | Create new skills to extend the framework |
 
 ## How It Works

@@ -25,13 +25,14 @@ pip install obsidian-wiki
 obsidian-wiki setup --vault /path/to/your/digital/brain
 ```
 
-`obsidian-wiki setup` writes the config to `~/.obsidian-wiki/config` and installs the bundled wiki skills into the configured agent discovery paths (Claude Code, Cursor, Codex, Gemini, Hermes, Pi, and more). Skills are symlinked to the installed package, so `pip install -U obsidian-wiki` can upgrade them centrally — re-run `obsidian-wiki setup` to refresh the global links. Then open a project in your agent and say **"set up my wiki"**.
+`obsidian-wiki setup` writes the config to `~/.obsidian-wiki/config` and installs the bundled wiki skills into the configured agent discovery paths (Claude Code, Cursor, Codex, Gemini, Hermes, Pi, and more). Codex gets a minimal global profile by default to avoid startup skill-budget pressure; use `--codex-profile full` only if you intentionally want all bundled skills visible globally in Codex. Skills are symlinked to the installed package, so `pip install -U obsidian-wiki` can upgrade them centrally — re-run `obsidian-wiki setup` to refresh the global links. Then open a project in your agent and say **"set up my wiki"**.
 
 ```bash
 obsidian-wiki list              # list the bundled skills
 obsidian-wiki info              # show install paths, version, and config
 obsidian-wiki setup --project . # also drop project-local skills + AGENTS.md into the current repo
 obsidian-wiki setup --copy      # copy skill files instead of symlinking
+obsidian-wiki setup --codex-profile full  # optional: expose all bundled skills to Codex globally
 obsidian-wiki guard-dry-run     # evaluate write-guard scenarios without writing
 obsidian-wiki guarded-log-append --vault /path/to/vault --operation-json op.json --line "..."
 ```
@@ -56,7 +57,7 @@ cd obsidian-wiki
 bash setup.sh
 ```
 
-`setup.sh` asks for your vault (path to your digital brain) path, writes the config to `~/.obsidian-wiki/config`, symlinks skills into the supported agent discovery paths, and installs the bundled wiki skills globally so configured agents can use them from other projects.
+`setup.sh` asks for your vault (path to your digital brain) path, writes the config to `~/.obsidian-wiki/config`, symlinks skills into the supported agent discovery paths, and installs the bundled wiki skills globally so configured agents can use them from other projects. Codex uses the same minimal global profile by default; run `OBSIDIAN_CODEX_SKILL_PROFILE=full bash setup.sh` for a deliberate full Codex install.
 
 Open the project in your agent and say **"set up my wiki"**.
 
@@ -72,7 +73,7 @@ Designed for **any AI coding agent** that can read files — Claude Code, Cursor
 | **[Claude Code](https://claude.ai/code)** | `CLAUDE.md` | `.claude/skills/` + `~/.claude/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
 | **[Cursor](https://cursor.com)** | `.cursor/rules/obsidian-wiki.mdc` | `.cursor/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
 | **[Windsurf](https://windsurf.com)** | `.windsurf/rules/obsidian-wiki.md` | `.windsurf/skills/` | ✅ via Cascade |
-| **[Codex (OpenAI)](https://openai.com/codex)** | `AGENTS.md` | `~/.codex/skills/` | `$wiki-ingest` (Codex uses `$`) |
+| **[Codex (OpenAI)](https://openai.com/codex)** | `AGENTS.md` | `~/.codex/skills/` (minimal global profile by default) | `$wiki-ingest` (Codex uses `$`) |
 | **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** | `GEMINI.md` | `~/.gemini/skills/` | ✅ `/wiki-ingest`, `/wiki-query`, etc. |
 | **[Google Antigravity](https://antigravity.google)** | `.agent/rules/` + `.agent/workflows/` | `.agents/skills/` | ✅ via workflows registry |
 | **[Kiro IDE/CLI](https://kiro.dev)** | `.kiro/steering/obsidian-wiki.md` | `.kiro/skills/` + `~/.kiro/skills/` | ✅ `/wiki-ingest`, `/wiki-status`, etc. |
@@ -116,7 +117,7 @@ Cascade reads rules from `.windsurf/rules/` and skills from `.windsurf/skills/`.
 <details>
 <summary>Codex</summary>
 
-Reads `AGENTS.md` for project context. `setup.sh` installs skills globally to `~/.codex/skills/`. Either run `setup.sh` or manually symlink `.skills/*` to `~/.codex/skills/`.
+Reads `AGENTS.md` for project context. `setup.sh` installs a small Codex global profile to `~/.codex/skills/` by default: `wiki-query`, `wiki-context-pack`, `wiki-update`, `wiki-ingest`, `wiki-capture`, `wiki-status`, `wiki-stage-commit`, `wiki-lint`, `wiki-setup`, `wiki-write-guard`, `impl-validator`, and `wiki-tools`. `wiki-tools` is the router for less-common bundled skills such as export/import, rebuild, dedup, synthesis, dashboards, digests, graph coloring, history variants, memory bridge, and skill factory. This keeps Codex below its startup skill-description budget while preserving access to the full toolbox on demand. Use `OBSIDIAN_CODEX_SKILL_PROFILE=full bash setup.sh` or `obsidian-wiki setup --codex-profile full` only when you intentionally want all bundled skills globally visible to Codex.
 
 ```bash
 cd /path/to/obsidian-wiki && codex "set up my wiki"
@@ -425,6 +426,7 @@ Everything lives in `.skills/`. Each skill is a markdown file the agent reads wh
 | `wiki-query` | Answer questions from the compiled wiki | `/wiki-query` |
 | `wiki-context-pack` | Produce token-bounded context packs for downstream agents or long tasks | `/wiki-context-pack` |
 | `wiki-status` | Show ingested, pending, stale, staged, and structural status | `/wiki-status` |
+| `wiki-tools` | Route less-common wiki tasks to the right bundled skill in Codex minimal profile | automatic router |
 | `daily-update` | Maintenance cycle for freshness, index, and hot cache | `/daily-update` |
 | `wiki-lint` | Find broken links, orphan pages, stale content, contradictions, and frontmatter issues | `/wiki-lint` |
 | `cross-linker` | Discover and insert missing wikilinks | `/cross-linker` |
@@ -473,11 +475,12 @@ After installing, compatible agents can discover those skills alongside the exis
 
 ```
 obsidian-wiki/
-├── .skills/                          # ← 39 canonical skill definitions
+├── .skills/                          # ← 40 canonical skill definitions
 │   ├── wiki-ingest/SKILL.md          # document/raw/history-to-wiki ingestion
 │   ├── wiki-query/SKILL.md           # cheap-first retrieval from the compiled wiki
 │   ├── wiki-write-guard/SKILL.md     # write classification and safety contract
 │   ├── wiki-context-pack/SKILL.md     # bounded context slices
+│   ├── wiki-tools/SKILL.md            # Codex minimal-profile router
 │   ├── wiki-stage-commit/SKILL.md     # staged-write review and promotion
 │   ├── wiki-export/SKILL.md           # graph, OKF, GraphML, Cypher, HTML export
 │   ├── wiki-import/SKILL.md           # graph/OKF import
@@ -509,7 +512,7 @@ obsidian-wiki/
 ├── ~/.claude/skills/              → global symlinks — Claude Code
 ├── ~/.gemini/skills/              → global symlinks — Gemini CLI
 ├── ~/.gemini/antigravity/skills/  → global symlinks — Antigravity (legacy path)
-├── ~/.codex/skills/               → global symlinks — Codex
+├── ~/.codex/skills/               → global symlinks — Codex minimal profile by default
 ├── ~/.hermes/skills/              → global symlinks — Hermes
 ├── ~/.openclaw/skills/            → global symlinks — OpenClaw (managed)
 ├── ~/.copilot/skills/             → global symlinks — GitHub Copilot CLI
@@ -533,10 +536,10 @@ When you run `bash setup.sh`, it does the following:
 
 1. Writes a config to `~/.obsidian-wiki/config` with your vault path and the repo location. This is how the skills know where to read and write.
 2. Symlinks the bundled skills into `~/.claude/skills/` for Claude Code installations that read that path.
-3. Symlinks all skills into the supported global discovery paths:
+3. Symlinks skills into the supported global discovery paths:
    - `~/.gemini/skills/` — Gemini CLI (canonical)
    - `~/.gemini/antigravity/skills/` — Google Antigravity (legacy)
-   - `~/.codex/skills/` — Codex
+   - `~/.codex/skills/` — Codex minimal profile by default; set `OBSIDIAN_CODEX_SKILL_PROFILE=full` for all bundled skills
    - `~/.hermes/skills/` — Hermes
    - `~/.openclaw/skills/` — OpenClaw (managed)
    - `~/.copilot/skills/` — GitHub Copilot CLI

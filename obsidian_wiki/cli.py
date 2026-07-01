@@ -2,9 +2,9 @@
 
 Python port of ``setup.sh`` for the pip-installed package. The skill content
 lives inside the installed package (``obsidian_wiki/_data/skills``) instead of a
-cloned repo, so this wires the bundled skills into every supported AI agent's
-skills directory and writes ``~/.obsidian-wiki/config`` so the skills resolve
-the vault from any project.
+cloned repo, so this wires supported skill profiles into AI agent discovery
+paths and writes ``~/.obsidian-wiki/config`` so the skills resolve the vault
+from any project.
 """
 
 from __future__ import annotations
@@ -24,9 +24,33 @@ GLOBAL_CONFIG_DIR = HOME / ".obsidian-wiki"
 GLOBAL_CONFIG = GLOBAL_CONFIG_DIR / "config"
 
 # Skills usable from any project (no vault context needed beyond the global
-# config). These are also installed globally for agents that only scope skills
-# per-project, so cross-project sync/query work everywhere.
+# config). These are installed into Claude's global skill path; the full skill
+# set remains available project-locally or through agents without tight startup
+# skill budgets.
 PORTABLE_SKILLS = ("wiki-update", "wiki-query")
+
+# Codex includes every visible skill description in a small startup context
+# budget. Keep the global Codex profile small and route uncommon work through
+# these entrypoints or project-local skills.
+CODEX_MINIMAL_SKILLS = (
+    "impl-validator",
+    "wiki-capture",
+    "wiki-context-pack",
+    "wiki-ingest",
+    "wiki-lint",
+    "wiki-query",
+    "wiki-setup",
+    "wiki-stage-commit",
+    "wiki-status",
+    "wiki-tools",
+    "wiki-update",
+    "wiki-write-guard",
+)
+CODEX_SKILL_PROFILES: dict[str, tuple[str, ...] | None] = {
+    "minimal": CODEX_MINIMAL_SKILLS,
+    "full": None,
+}
+DEFAULT_CODEX_PROFILE = "minimal"
 
 
 # ── Data resolution ──────────────────────────────────────────────────────────
@@ -73,12 +97,24 @@ def install_skills(
     label: str,
     *,
     subset: tuple[str, ...] | None = None,
+    prune_unselected: bool = False,
     mode: str = "symlink",
     quiet: bool = False,
 ) -> int:
     """Install bundled skills into *target_dir*. Returns the count installed."""
     src_root = skills_dir()
     target_dir.mkdir(parents=True, exist_ok=True)
+    if prune_unselected and subset is not None:
+        selected = set(subset)
+        for skill in sorted(p for p in src_root.iterdir() if p.is_dir()):
+            if skill.name in selected:
+                continue
+            link_path = target_dir / skill.name
+            if link_path.is_symlink() or link_path.is_file():
+                link_path.unlink()
+            elif link_path.is_dir() and (link_path / "SKILL.md").exists():
+                shutil.rmtree(link_path)
+
     installed = 0
     for skill in sorted(p for p in src_root.iterdir() if p.is_dir()):
         name = skill.name
@@ -111,28 +147,40 @@ def install_skills(
     return installed
 
 
-# Agents whose skills directory lives under $HOME. (path-under-home, label,
-# subset). All get every skill — pip users have no cloned repo to host
-# project-scoped skills, so everything must be globally discoverable.
-GLOBAL_AGENT_DIRS: list[tuple[str, str, tuple[str, ...] | None]] = [
-    (".claude/skills", "~/.claude/skills/ (Claude Code)", None),
-    (".gemini/skills", "~/.gemini/skills/ (Gemini CLI)", None),
-    (".gemini/antigravity/skills", "~/.gemini/antigravity/skills/ (Antigravity, legacy)", None),
-    (".codex/skills", "~/.codex/skills/ (Codex)", None),
-    (".hermes/skills", "~/.hermes/skills/ (Hermes default)", None),
-    (".openclaw/skills", "~/.openclaw/skills/ (OpenClaw)", None),
-    (".copilot/skills", "~/.copilot/skills/ (GitHub Copilot CLI)", None),
-    (".trae/skills", "~/.trae/skills/ (Trae)", None),
-    (".trae-cn/skills", "~/.trae-cn/skills/ (Trae CN)", None),
-    (".kiro/skills", "~/.kiro/skills/ (Kiro CLI)", None),
-    (".pi/agent/skills", "~/.pi/agent/skills/ (Pi)", None),
-    (".agents/skills", "~/.agents/skills/ (OpenCode, Aider, Droid, generic)", None),
-]
+# Agents whose skills directory lives under $HOME. Tuple shape:
+# (path-under-home, label, subset, prune_unselected).
+def global_agent_dirs(codex_profile: str) -> list[tuple[str, str, tuple[str, ...] | None, bool]]:
+    codex_subset = CODEX_SKILL_PROFILES[codex_profile]
+    codex_label = (
+        "~/.codex/skills/ (Codex, minimal profile)"
+        if codex_profile == "minimal"
+        else "~/.codex/skills/ (Codex, full profile)"
+    )
+    return [
+        (".claude/skills", "~/.claude/skills/ (Claude Code, portable skills)", PORTABLE_SKILLS, True),
+        (".gemini/skills", "~/.gemini/skills/ (Gemini CLI)", None, False),
+        (".gemini/antigravity/skills", "~/.gemini/antigravity/skills/ (Antigravity, legacy)", None, False),
+        (".codex/skills", codex_label, codex_subset, codex_subset is not None),
+        (".hermes/skills", "~/.hermes/skills/ (Hermes default)", None, False),
+        (".openclaw/skills", "~/.openclaw/skills/ (OpenClaw)", None, False),
+        (".copilot/skills", "~/.copilot/skills/ (GitHub Copilot CLI)", None, False),
+        (".trae/skills", "~/.trae/skills/ (Trae)", None, False),
+        (".trae-cn/skills", "~/.trae-cn/skills/ (Trae CN)", None, False),
+        (".kiro/skills", "~/.kiro/skills/ (Kiro CLI)", None, False),
+        (".pi/agent/skills", "~/.pi/agent/skills/ (Pi)", None, False),
+        (".agents/skills", "~/.agents/skills/ (OpenCode, Aider, Droid, generic)", None, False),
+    ]
 
 
-def install_global_skills(mode: str) -> None:
-    for rel, label, subset in GLOBAL_AGENT_DIRS:
-        install_skills(HOME / rel, label, subset=subset, mode=mode)
+def install_global_skills(mode: str, codex_profile: str) -> None:
+    for rel, label, subset, prune_unselected in global_agent_dirs(codex_profile):
+        install_skills(
+            HOME / rel,
+            label,
+            subset=subset,
+            prune_unselected=prune_unselected,
+            mode=mode,
+        )
     _install_hermes_profiles(mode)
 
 
@@ -266,7 +314,7 @@ def resolve_vault_path(cli_vault: str | None) -> str:
     return existing
 
 
-def write_config(vault_path: str) -> None:
+def write_config(vault_path: str, codex_profile: str) -> None:
     GLOBAL_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     # OBSIDIAN_WIKI_REPO points at the bundled data root so skills that reference
     # framework assets (templates, references) can find them post-install.
@@ -275,8 +323,25 @@ def write_config(vault_path: str) -> None:
         f'OBSIDIAN_VAULT_PATH="{vault_path}"\n'
         f'OBSIDIAN_WIKI_REPO="{repo_root}"\n'
         f'OBSIDIAN_WIKI_VERSION="{__version__}"\n'
+        f'OBSIDIAN_CODEX_SKILL_PROFILE="{codex_profile}"\n'
     )
     print(f"✅  Global config written to {GLOBAL_CONFIG}")
+
+
+def resolve_codex_profile(cli_profile: str | None = None) -> str:
+    profile = (
+        cli_profile
+        or os.environ.get("OBSIDIAN_CODEX_SKILL_PROFILE")
+        or _read_config_value("OBSIDIAN_CODEX_SKILL_PROFILE")
+        or DEFAULT_CODEX_PROFILE
+    )
+    if profile not in CODEX_SKILL_PROFILES:
+        print(
+            f"⚠️  Unknown OBSIDIAN_CODEX_SKILL_PROFILE={profile!r}; using {DEFAULT_CODEX_PROFILE!r}.",
+            file=sys.stderr,
+        )
+        return DEFAULT_CODEX_PROFILE
+    return profile
 
 
 def _check_stale() -> None:
@@ -298,37 +363,53 @@ def _check_stale() -> None:
         )
         return
 
-    # Even if the version matches, check that ~/.claude/skills has the full set.
-    claude_skills_dir = HOME / ".claude" / "skills"
-    if claude_skills_dir.is_dir():
-        bundled = set(list_skills())
-        installed = {p.name for p in claude_skills_dir.iterdir() if p.is_dir()}
-        missing = bundled - installed
-        if missing:
+    bundled = set(list_skills())
+    codex_profile = resolve_codex_profile()
+    for rel, label, subset, _prune_unselected in global_agent_dirs(codex_profile):
+        expected = set(subset or bundled)
+        agent_dir = HOME / rel
+        if not agent_dir.is_dir():
+            continue
+        installed = {p.name for p in agent_dir.iterdir() if p.is_dir()}
+        missing = expected - installed
+        extra = (installed & bundled) - expected
+        if missing or extra:
+            detail = []
+            if missing:
+                detail.append(
+                    f"{len(missing)} missing "
+                    f"(e.g. {', '.join(sorted(missing)[:3])}{', ...' if len(missing) > 3 else ''})"
+                )
+            if extra:
+                detail.append(
+                    f"{len(extra)} extra bundled "
+                    f"(e.g. {', '.join(sorted(extra)[:3])}{', ...' if len(extra) > 3 else ''})"
+                )
             print(
-                f"⚠️  {len(missing)} skill(s) missing from ~/.claude/skills/ "
-                f"(e.g. {', '.join(sorted(missing)[:3])}{', ...' if len(missing) > 3 else ''}).\n"
+                f"⚠️  Skill profile drift in {label}: {'; '.join(detail)}.\n"
                 f"   Run: obsidian-wiki setup",
                 file=sys.stderr,
             )
+            return
 
 
 # ── Commands ─────────────────────────────────────────────────────────────────
 def cmd_setup(args: argparse.Namespace) -> int:
     mode = "copy" if args.copy else "symlink"
+    codex_profile = resolve_codex_profile(args.codex_profile)
     print("\n╔══════════════════════════════════════════════════╗")
     print("║         obsidian-wiki — Agent Setup              ║")
     print("╚══════════════════════════════════════════════════╝\n")
 
     vault_path = resolve_vault_path(args.vault)
-    write_config(vault_path)
+    write_config(vault_path, codex_profile)
     if not vault_path:
         print("    → Vault path not set yet. Re-run with `--vault /path/to/vault`")
         print("      or edit OBSIDIAN_VAULT_PATH in ~/.obsidian-wiki/config.")
 
     if not args.project_only:
         print()
-        install_global_skills(mode)
+        install_global_skills(mode, codex_profile)
 
     if args.project is not None:
         project_dir = Path(args.project or os.getcwd()).expanduser().resolve()
@@ -337,7 +418,8 @@ def cmd_setup(args: argparse.Namespace) -> int:
     n = len(list_skills())
     print("\n───────────────────────────────────────────────────")
     print(" Setup complete!\n")
-    print(f" Skills installed: {n}  (mode: {mode})")
+    print(f" Bundled skills:   {n}  (mode: {mode})")
+    print(f" Codex profile:    {codex_profile} ({len(CODEX_SKILL_PROFILES[codex_profile] or list_skills())} global skills)")
     if vault_path:
         print(f" Vault:            {vault_path}")
     print("\n Next steps:")
@@ -358,6 +440,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 def cmd_info(args: argparse.Namespace) -> int:
     bundled = list_skills()
+    codex_profile = resolve_codex_profile()
     print(f"obsidian-wiki {__version__}")
     print(f"skills:    {skills_dir()}")
     boot = bootstrap_dir()
@@ -366,24 +449,38 @@ def cmd_info(args: argparse.Namespace) -> int:
     if GLOBAL_CONFIG.exists():
         vp = _read_config_value("OBSIDIAN_VAULT_PATH")
         setup_ver = _read_config_value("OBSIDIAN_WIKI_VERSION")
+        setup_codex_profile = _read_config_value("OBSIDIAN_CODEX_SKILL_PROFILE")
         print(f"vault:     {vp or '(unset)'}")
         print(f"setup ran: {setup_ver or '(never)'}")
+        profile_note = (
+            f"{codex_profile} (config: {setup_codex_profile})"
+            if setup_codex_profile and setup_codex_profile != codex_profile
+            else codex_profile
+        )
+        print(f"codex profile: {profile_note}")
     print(f"bundled skills: {len(bundled)}")
     print()
     print("Agent skill install status:")
     bundled_set = set(bundled)
-    for rel, label, _subset in GLOBAL_AGENT_DIRS:
+    for rel, label, subset, _prune_unselected in global_agent_dirs(codex_profile):
         agent_dir = HOME / rel
         if not agent_dir.is_dir():
             print(f"  {label}: not installed")
             continue
+        expected = set(subset or bundled)
         installed = {p.name for p in agent_dir.iterdir() if p.is_dir()}
-        wiki_installed = installed & bundled_set
-        missing = bundled_set - installed
-        status = "✅" if not missing else "⚠️ "
-        print(f"  {status} {label}: {len(wiki_installed)}/{len(bundled_set)}", end="")
+        wiki_installed = installed & expected
+        missing = expected - installed
+        extra = (installed & bundled_set) - expected
+        status = "✅" if not missing and not extra else "⚠️ "
+        print(f"  {status} {label}: {len(wiki_installed)}/{len(expected)}", end="")
+        notes = []
         if missing:
-            print(f"  (run: obsidian-wiki setup)", end="")
+            notes.append(f"{len(missing)} missing")
+        if extra:
+            notes.append(f"{len(extra)} extra bundled")
+        if notes:
+            print(f"  ({'; '.join(notes)}; run: obsidian-wiki setup)", end="")
         print()
     _check_stale()
     return 0
@@ -494,6 +591,15 @@ def _add_setup_args(sp: argparse.ArgumentParser) -> None:
         "--copy",
         action="store_true",
         help="copy skill files instead of symlinking to the installed package",
+    )
+    sp.add_argument(
+        "--codex-profile",
+        choices=sorted(CODEX_SKILL_PROFILES),
+        default=None,
+        help=(
+            "skills to install globally for Codex; default is minimal to avoid "
+            "Codex startup skill-budget pressure"
+        ),
     )
 
 
